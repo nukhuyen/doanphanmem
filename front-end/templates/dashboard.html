@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}Trang Chủ Sinh Viên{% endblock %}
+
+{% block extra_head %}
+<style>
+  .welcome-banner {
+    background: linear-gradient(135deg, var(--navy-800) 0%, var(--navy-600) 60%, var(--navy-500) 100%);
+    border-radius: 14px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    color: var(--white);
+  }
+  .welcome-banner::before {
+    content: '';
+    position: absolute; top: -40px; right: -40px;
+    width: 200px; height: 200px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 50%;
+  }
+  .welcome-banner::after {
+    content: '';
+    position: absolute; top: 20px; right: 60px;
+    width: 100px; height: 100px;
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 50%;
+  }
+  .welcome-greeting {
+    font-size: 13px; color: var(--navy-300);
+    font-weight: 500; letter-spacing: .5px;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .welcome-name {
+    font-family: var(--font-display);
+    font-size: 26px; font-weight: 700;
+    color: var(--white); margin-bottom: 8px;
+  }
+  .welcome-meta { font-size: 13.5px; color: rgba(255,255,255,.6); display: flex; gap: 20px; flex-wrap: wrap; }
+  .welcome-meta span { display: flex; align-items: center; gap: 6px; }
+  .welcome-gold-tag {
+    position: absolute; top: 24px; right: 32px;
+    background: rgba(201,151,58,.2);
+    border: 1px solid rgba(201,151,58,.4);
+    color: var(--gold-lt);
+    font-size: 12px; font-weight: 600;
+    padding: 5px 14px; border-radius: 20px;
+    letter-spacing: .5px;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+  }
+
+  .notif-item {
+    display: flex; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--slate-200);
+  }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-dot-wrap {
+    flex-shrink: 0; padding-top: 4px;
+  }
+  .notif-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--navy-400); margin: 0 auto;
+  }
+  .notif-dot.unread { background: var(--gold); box-shadow: 0 0 6px rgba(201,151,58,.5); }
+  .notif-title {
+    font-size: 13.5px; font-weight: 600;
+    color: var(--navy-800); margin-bottom: 3px;
+  }
+  .notif-content { font-size: 12.5px; color: var(--slate-600); line-height: 1.5; }
+  .notif-time { font-size: 11px; color: var(--slate-400); margin-top: 4px; }
+
+  .quick-action {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px;
+    padding: 20px 16px;
+    border-radius: 10px;
+    border: 1.5px solid var(--slate-200);
+    background: var(--white);
+    text-decoration: none;
+    transition: all .18s;
+    text-align: center;
+  }
+  .quick-action:hover {
+    border-color: var(--navy-300);
+    background: var(--navy-50);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(36,83,160,.1);
+  }
+  .quick-action-icon { font-size: 26px; }
+  .quick-action-label { font-size: 12.5px; font-weight: 600; color: var(--navy-700); }
+  .quick-actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+
+  .reg-status-card {
+    border-left: 4px solid;
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    background: var(--white);
+    border-top: 1px solid var(--slate-200);
+    border-right: 1px solid var(--slate-200);
+    border-bottom: 1px solid var(--slate-200);
+    margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .reg-status-card.pending  { border-left-color: #f59e0b; }
+  .reg-status-card.approved { border-left-color: var(--success); }
+  .reg-status-card.rejected { border-left-color: var(--danger); }
+  .reg-course-name { font-size: 13.5px; font-weight: 600; color: var(--navy-800); }
+  .reg-course-code { font-size: 12px; color: var(--slate-400); margin-top: 2px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="uni-seal" style="background:var(--gold);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div class="uni-name">Web Đăng Ký Tín Chỉ</div>
+    <div class="uni-sub">Cổng Sinh Viên</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Tổng quan</div>
+    <a href="/dashboard" class="nav-link active">
+      <span class="nav-icon">🏠</span> Trang chủ
+    </a>
+    <div class="nav-section-label">Học tập</div>
+    <a href="/courses" class="nav-link">
+      <span class="nav-icon">📚</span> Danh sách học phần
+    </a>
+    <a href="/my-registrations" class="nav-link">
+      <span class="nav-icon">📋</span> Đơn đăng ký của tôi
+    </a>
+    <a href="/schedule" class="nav-link">
+      <span class="nav-icon">📅</span> Thời khóa biểu
+    </a>
+    <div class="nav-section-label">Cá nhân</div>
+    <a href="/profile" class="nav-link">
+      <span class="nav-icon">👤</span> Hồ sơ cá nhân
+    </a>
+    <a href="/notifications" class="nav-link">
+      <span class="nav-icon">🔔</span> Thông báo
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">{{ session.name[0] if session.name else 'SV' }}</div>
+      <div>
+        <div class="sidebar-user-name">{{ session.name }}</div>
+        <div class="sidebar-user-role">Sinh viên</div>
+      </div>
+    </div>
+    <a href="/logout" class="sidebar-logout">⎋ Đăng xuất</a>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-title">Trang Chủ</div>
+    <div class="topbar-date" id="current-date"></div>
+    <div class="topbar-actions">
+      <a href="/my-registrations" class="btn btn-gold btn-sm">+ Đăng ký học phần</a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-wrap" style="padding-top:20px">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="page-content">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <div class="welcome-gold-tag">🎓 Sinh Viên</div>
+      <div class="welcome-greeting">Xin chào,</div>
+      <div class="welcome-name">{{ session.name }}</div>
+      <div class="welcome-meta">
+        <span>📅 Học kỳ 2 · 2025–2026</span>
+        <span>🗓 Đăng ký học phần đang mở</span>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-grid">
+      <a href="/courses" class="quick-action">
+        <span class="quick-action-icon">📚</span>
+        <span class="quick-action-label">Xem học phần</span>
+      </a>
+      <a href="/register-course" class="quick-action">
+        <span class="quick-action-icon">✏️</span>
+        <span class="quick-action-label">Đăng ký môn</span>
+      </a>
+      <a href="/my-registrations" class="quick-action">
+        <span class="quick-action-icon">📋</span>
+        <span class="quick-action-label">Đơn của tôi</span>
+      </a>
+      <a href="/profile" class="quick-action">
+        <span class="quick-action-icon">👤</span>
+        <span class="quick-action-label">Hồ sơ</span>
+      </a>
+    </div>
+
+    <div class="content-grid">
+      <!-- Notifications -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📢 Thông Báo Mới Nhất</span>
+          <a href="/notifications" class="btn btn-ghost btn-sm">Xem tất cả →</a>
+        </div>
+        <div class="card-body" style="padding: 0 24px;">
+          {% if notifs %}
+            {% for notif in notifs %}
+            <div class="notif-item">
+              <div class="notif-dot-wrap">
+                <div class="notif-dot {% if loop.first %}unread{% endif %}"></div>
+              </div>
+              <div>
+                <div class="notif-title">{{ notif.title }}</div>
+                <div class="notif-content">{{ notif.content[:120] }}{% if notif.content|length > 120 %}...{% endif %}</div>
+                <div class="notif-time">{{ notif.created_at.strftime('%d/%m/%Y %H:%M') if notif.created_at else '' }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-state-icon">🔕</div>
+              <p>Chưa có thông báo nào</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Sidebar info -->
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <!-- Semester info -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📅 Thông Tin Học Kỳ</span>
+          </div>
+          <div class="card-body">
+            <table style="font-size:13px;width:100%;">
+              <tr><td style="color:var(--slate-400);padding:5px 0;border:none;">Học kỳ</td><td style="font-weight:600;color:var(--navy-800);border:none;text-align:right;">HK2 · 2025-2026</td></tr>
+              <tr><td style="color:var(--slate-400);padding:5px 0;border:none;">Mở đăng ký</td><td style="font-weight:600;color:var(--success);border:none;text-align:right;">✓ Đang mở</td></tr>
+              <tr><td style="color:var(--slate-400);padding:5px 0;border:none;">Số môn tối đa</td><td style="font-weight:600;color:var(--navy-800);border:none;text-align:right;">5 học phần</td></tr>
+              <tr><td style="color:var(--slate-400);padding:5px 0;border:none;">Hạn chót</td><td style="font-weight:600;color:var(--danger);border:none;text-align:right;">31/03/2026</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- My registrations summary -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📋 Đơn Đăng Ký Gần Đây</span>
+          </div>
+          <div class="card-body" style="padding:16px 20px;">
+            <div class="reg-status-card pending">
+              <div><div class="reg-course-name">Chưa có đơn</div><div class="reg-course-code">Hãy đăng ký học phần ngay</div></div>
+              <a href="/register-course" class="btn btn-primary btn-xs">Đăng ký</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const d = new Date();
+  document.getElementById('current-date').textContent =
+    d.toLocaleDateString('vi-VN', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+</script>
+{% endblock %}

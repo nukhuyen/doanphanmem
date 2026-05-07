@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Trang Chủ Sinh Viên{% endblock %}
+
+{% block extra_head %}
+<style>
+  :root { --sv-blue:#2563eb; --sv-blue-lt:#eff6ff; --sv-blue-bd:#bfdbfe; }
+  .sv-strip { height:3px; background:linear-gradient(90deg,#1d4ed8,#3b82f6,#06b6d4); }
+  .nav-link .nav-icon svg { width:17px; height:17px; }
+
+  /* Welcome banner */
+  .welcome-banner {
+    background:linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#2563eb 100%);
+    border-radius:var(--radius-lg); padding:28px 32px; color:white;
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:24px; overflow:hidden; position:relative;
+  }
+  .welcome-banner::after {
+    content:''; position:absolute; right:-30px; top:-30px;
+    width:200px; height:200px; border-radius:50%;
+    background:rgba(255,255,255,.05);
+  }
+  .welcome-title { font-family:var(--font-display); font-size:22px; font-weight:700; margin-bottom:6px; }
+  .welcome-sub { font-size:13.5px; opacity:.8; }
+  .welcome-actions { display:flex; gap:10px; position:relative; z-index:1; }
+
+  /* Stat mini */
+  .stat-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+  .stat-mini { background:var(--white); border:1px solid var(--slate-200); border-radius:var(--radius-lg); padding:16px 20px; box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:14px; }
+  .stat-mini-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .stat-mini-icon svg { width:20px; height:20px; }
+  .stat-mini-num { font-family:var(--font-display); font-size:24px; font-weight:700; line-height:1; }
+  .stat-mini-label { font-size:12px; color:var(--slate-400); margin-top:3px; }
+
+  /* Course card */
+  .course-mini-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  .course-mini-card {
+    border:1px solid var(--slate-200); border-radius:var(--radius);
+    padding:14px 16px; background:var(--white);
+    transition:all .15s; position:relative; overflow:hidden;
+  }
+  .course-mini-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:#3b82f6; }
+  .course-mini-card:hover { border-color:#93c5fd; box-shadow:var(--shadow-sm); }
+  .course-mini-code { font-family:monospace; font-size:11px; font-weight:700; color:#2563eb; background:#eff6ff; padding:2px 7px; border-radius:4px; display:inline-block; margin-bottom:6px; }
+  .course-mini-name { font-size:13px; font-weight:600; color:var(--navy-800); margin-bottom:4px; }
+  .course-mini-meta { font-size:12px; color:var(--slate-400); }
+
+  /* Notif item */
+  .notif-item { padding:12px 20px; border-bottom:1px solid var(--slate-100); display:flex; gap:12px; align-items:flex-start; }
+  .notif-dot { width:8px; height:8px; border-radius:50%; background:#3b82f6; margin-top:5px; flex-shrink:0; }
+  .notif-title { font-size:13px; font-weight:600; color:var(--navy-800); }
+  .notif-time { font-size:11.5px; color:var(--slate-400); margin-top:2px; }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 0 0 3px rgba(37,99,235,.25);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--white);line-height:1.3;">Web Đăng Ký Tín Chỉ</div>
+    <div style="font-size:11px;color:#93c5fd;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">Cổng Sinh Viên</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Tổng quan</div>
+    <a href="/sv/dashboard" class="nav-link active">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+      Trang chủ
+    </a>
+    <div class="nav-section-label">Đăng ký học phần</div>
+    <a href="/sv/sections" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      Danh sách học phần
+    </a>
+    <a href="/sv/my-registrations" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      Đơn đăng ký của tôi
+      {% if stats.pending > 0 %}<span class="nav-badge">{{ stats.pending }}</span>{% endif %}
+    </a>
+    <div class="nav-section-label">Thông tin</div>
+    <a href="/sv/notifications" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      Thông báo
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-weight:700;">
+        {{ session.name[0] | upper if session.name else 'S' }}
+      </div>
+      <div>
+        <div class="sidebar-user-name">{{ session.name }}</div>
+        <div class="sidebar-user-role" style="color:#93c5fd;">Sinh viên</div>
+      </div>
+    </div>
+    <a href="/logout" class="sidebar-logout">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Đăng xuất
+    </a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="sv-strip"></div>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Trang Chủ</div>
+      <div class="topbar-breadcrumb" style="margin-top:2px;">Hệ thống đăng ký tín chỉ</div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-wrap" style="padding-top:20px">{% for c,m in messages %}<div class="alert alert-{{c}}">{{ m|safe }}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+
+  <div class="page-content">
+    <!-- Welcome banner -->
+    <div class="welcome-banner">
+      <div>
+        <div class="welcome-title">Xin chào, {{ session.name }}!</div>
+        <div class="welcome-sub">Chào mừng bạn đến với hệ thống đăng ký tín chỉ.</div>
+      </div>
+      <div class="welcome-actions">
+        <a href="/sv/sections" class="btn btn-sm" style="background:white;color:#1d4ed8;font-weight:600;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Đăng ký học phần
+        </a>
+        <a href="/sv/my-registrations" class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border:1.5px solid rgba(255,255,255,.3);">
+          Xem đơn của tôi
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-row">
+      <div class="stat-mini">
+        <div class="stat-mini-icon" style="background:#fef9c3;color:#b45309;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        </div>
+        <div>
+          <div class="stat-mini-num" style="color:#b45309;">{{ stats.pending }}</div>
+          <div class="stat-mini-label">Đơn chờ duyệt</div>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-icon" style="background:#dcfce7;color:#16a34a;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+        </div>
+        <div>
+          <div class="stat-mini-num" style="color:#16a34a;">{{ stats.approved }}</div>
+          <div class="stat-mini-label">Đã được duyệt</div>
+        </div>
+      </div>
+      <div class="stat-mini">
+        <div class="stat-mini-icon" style="background:#fee2e2;color:#dc2626;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div>
+          <div class="stat-mini-num" style="color:#dc2626;">{{ stats.rejected }}</div>
+          <div class="stat-mini-label">Bị từ chối</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- Lịch học đã duyệt -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" style="display:flex;align-items:center;gap:7px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Lịch học đã được duyệt
+          </span>
+          <a href="/sv/my-registrations?status=approved" class="btn btn-ghost btn-sm">Xem tất cả</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+          {% if approved_regs %}
+          {% for item in approved_regs %}
+          <div class="course-mini-card" style="margin:12px 16px;border-left-color:#16a34a;">
+            <span class="course-mini-code">{{ item.course.code if item.course else '?' }}</span>
+            <div class="course-mini-name">{{ item.course.name if item.course else '—' }}</div>
+            {% if item.section and item.section.schedule %}
+            <div class="course-mini-meta" style="display:flex;align-items:center;gap:5px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              {{ item.section.schedule }}
+            </div>
+            {% endif %}
+            {% if item.section and item.section.instructor %}
+            <div class="course-mini-meta" style="display:flex;align-items:center;gap:5px;margin-top:2px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              {{ item.section.instructor }}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="empty-state" style="padding:40px 0;">
+            <div style="opacity:.3;margin-bottom:10px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <p>Chưa có học phần nào được duyệt</p>
+            <a href="/sv/sections" style="color:#2563eb;font-size:13px;margin-top:8px;display:inline-block;">Đăng ký ngay →</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Thông báo từ hệ thống -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" style="display:flex;align-items:center;gap:7px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Thông báo từ Phòng Đào Tạo
+          </span>
+          <a href="/sv/notifications" class="btn btn-ghost btn-sm">Xem tất cả</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+          {% if notifs %}
+          {% for n in notifs %}
+          <div class="notif-item">
+            <div class="notif-dot"></div>
+            <div>
+              <div class="notif-title">{{ n.title }}</div>
+              <div class="notif-time">{{ n.created_at.strftime('%d/%m/%Y %H:%M') if n.created_at else '—' }}</div>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="empty-state" style="padding:40px 0;">
+            <div style="opacity:.3;margin-bottom:10px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg></div>
+            <p>Chưa có thông báo nào</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

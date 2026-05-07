@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Xét Duyệt Đơn — Phòng Đào Tạo{% endblock %}
+{% block extra_head %}
+<style>
+  .pdt-header-strip { height:3px; background:linear-gradient(90deg,#1e4d8c,#2563eb,#16a34a); }
+  .nav-link .nav-icon svg { width:17px; height:17px; }
+  .filter-tab { padding:7px 16px; border-radius:20px; font-size:13px; font-weight:500; text-decoration:none; border:1.5px solid var(--slate-200); color:var(--slate-600); background:var(--white); transition:all .15s; display:inline-flex; align-items:center; gap:6px; }
+  .filter-tab:hover { border-color:#93c5fd; color:#2563eb; }
+  .filter-tab.active { background:#2563eb; color:var(--white); border-color:#2563eb; }
+  .filter-tab .count-pill { font-size:11px; font-weight:700; background:rgba(255,255,255,.3); padding:1px 6px; border-radius:10px; }
+  .filter-tab:not(.active) .count-pill { background:#e2e8f0; color:var(--slate-600); }
+  .bulk-action-bar { display:none; align-items:center; gap:10px; background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:8px; padding:10px 16px; margin-bottom:14px; }
+  .bulk-action-bar.visible { display:flex; }
+  .action-btns { display:flex; gap:6px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 0 0 3px rgba(37,99,235,.25);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--white);line-height:1.3;">Web Đăng Ký Tín Chỉ</div>
+    <div style="font-size:11px;color:#93c5fd;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">Phòng Đào Tạo</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Tổng quan</div>
+    <a href="/pdt/dashboard" class="nav-link"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</a>
+    <div class="nav-section-label">Nghiệp vụ</div>
+    <a href="/pdt/courses" class="nav-link"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>Quản lý học phần</a>
+    <a href="/pdt/registrations" class="nav-link active"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>Xét duyệt đơn{% if pending_count|default(0) > 0 %}<span class="nav-badge">{{ pending_count }}</span>{% endif %}</a>
+    <a href="/pdt/config" class="nav-link"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>Quy tắc đăng ký</a>
+    <a href="/pdt/notifications" class="nav-link"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>Gửi thông báo</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-weight:700;">{{ session.name[0] if session.name else 'P' }}</div>
+      <div><div class="sidebar-user-name">{{ session.name }}</div><div class="sidebar-user-role" style="color:#93c5fd;">Phòng Đào Tạo</div></div>
+    </div>
+    <a href="/logout" class="sidebar-logout"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Đăng xuất</a>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <div class="pdt-header-strip"></div>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Xét Duyệt Đơn Đăng Ký</div>
+      <div class="topbar-breadcrumb" style="margin-top:2px;"><a href="/pdt/dashboard">Dashboard</a> / Xét duyệt đơn</div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-wrap" style="padding-top:20px">{% for c,m in messages %}<div class="alert alert-{{c}}">{{m}}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+
+  <div class="page-content">
+    <!-- Filter tabs -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+      <a href="/pdt/registrations" class="filter-tab {% if not status_filter %}active{% endif %}">
+        Tất cả <span class="count-pill">{{ reg_data|length }}</span>
+      </a>
+      <a href="/pdt/registrations?status=pending" class="filter-tab {% if status_filter=='pending' %}active{% endif %}">
+        Chờ duyệt <span class="count-pill">{{ reg_data|selectattr('reg.status','equalto','pending')|list|length if not status_filter else reg_data|length }}</span>
+      </a>
+      <a href="/pdt/registrations?status=approved" class="filter-tab {% if status_filter=='approved' %}active{% endif %}">Đã duyệt</a>
+      <a href="/pdt/registrations?status=rejected" class="filter-tab {% if status_filter=='rejected' %}active{% endif %}">Từ chối</a>
+    </div>
+
+    <form method="POST" action="/pdt/registrations/bulk-action" id="bulk-form">
+      <!-- Bulk bar -->
+      <div class="bulk-action-bar" id="bulk-bar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span style="font-size:13px;font-weight:600;color:#1d4ed8;" id="bulk-count-text">0 đơn đã chọn</span>
+        <button type="submit" name="bulk_action" value="approve" class="btn btn-success btn-sm">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+          Duyệt đã chọn
+        </button>
+        <button type="submit" name="bulk_action" value="reject" class="btn btn-danger btn-sm" onclick="return confirm('Từ chối các đơn đã chọn?')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Từ chối đã chọn
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="clearSelection()">Bỏ chọn</button>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding:0;">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px;"><input type="checkbox" id="check-all" onchange="toggleAll(this)"/></th>
+                  <th>#</th>
+                  <th>Sinh viên</th>
+                  <th>Học phần</th>
+                  <th style="text-align:center;">TC</th>
+                  <th>Ngày nộp</th>
+                  <th>Trạng thái</th>
+                  <th style="text-align:right;">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in reg_data %}
+                <tr>
+                  <td>
+                    {% if item.reg.status == 'pending' %}
+                    <input type="checkbox" name="ids" value="{{ item.reg.id }}" class="row-check" onchange="updateBulkBar()"/>
+                    {% endif %}
+                  </td>
+                  <td style="font-size:12px;color:var(--slate-400);">{{ loop.index }}</td>
+                  <td>
+                    <div style="font-size:13.5px;font-weight:600;color:var(--navy-800);">{{ item.user.full_name if item.user else '?' }}</div>
+                    <div style="font-size:12px;color:var(--slate-400);">{{ item.user.username if item.user else '' }}</div>
+                  </td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <span style="font-family:monospace;font-size:12px;font-weight:700;color:#2563eb;background:#eff6ff;padding:2px 7px;border-radius:4px;">{{ item.course.code if item.course else '?' }}</span>
+                      <span style="font-size:13px;color:var(--navy-700);">{{ item.course.name if item.course else '—' }}</span>
+                    </div>
+                  </td>
+                  <td style="text-align:center;font-weight:600;color:var(--navy-700);">{{ item.course.credits if item.course else '—' }}</td>
+                  <td style="font-size:12.5px;color:var(--slate-400);">{{ item.reg.submitted_at.strftime('%d/%m/%Y %H:%M') if item.reg.submitted_at else '—' }}</td>
+                  <td>
+                    <span class="badge badge-{{ item.reg.status }}">
+                      {% if item.reg.status=='pending' %}Chờ duyệt
+                      {% elif item.reg.status=='approved' %}Đã duyệt
+                      {% else %}Từ chối{% endif %}
+                    </span>
+                  </td>
+                  <td style="text-align:right;">
+                    {% if item.reg.status == 'pending' %}
+                    <div class="action-btns" style="justify-content:flex-end;">
+                      <form method="POST" action="/pdt/registrations/{{ item.reg.id }}/approve" style="display:inline;">
+                        <button type="submit" class="btn btn-success btn-xs">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+                          Duyệt
+                        </button>
+                      </form>
+                      <form method="POST" action="/pdt/registrations/{{ item.reg.id }}/reject" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-xs">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          Từ chối
+                        </button>
+                      </form>
+                    </div>
+                    {% else %}
+                    <span style="font-size:12px;color:var(--slate-400);">Đã xử lý</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8">
+                  <div class="empty-state" style="padding:60px 0;">
+                    <div style="opacity:.3;margin-bottom:12px;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+                    <p style="font-weight:600;">{% if status_filter=='pending' %}Không có đơn nào chờ duyệt{% else %}Chưa có đơn đăng ký nào{% endif %}</p>
+                    {% if status_filter %}<p style="margin-top:6px;"><a href="/pdt/registrations" style="color:#2563eb;">Xem tất cả →</a></p>{% endif %}
+                  </div>
+                </td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function toggleAll(cb) {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+  updateBulkBar();
+}
+function updateBulkBar() {
+  const checked = document.querySelectorAll('.row-check:checked').length;
+  const bar = document.getElementById('bulk-bar');
+  document.getElementById('bulk-count-text').textContent = checked + ' đơn đã chọn';
+  bar.classList.toggle('visible', checked > 0);
+}
+function clearSelection() {
+  document.querySelectorAll('.row-check, #check-all').forEach(c => c.checked = false);
+  updateBulkBar();
+}
+</script>
+{% endblock %}

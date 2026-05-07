@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% block title %}Đơn Đăng Ký Của Tôi{% endblock %}
+
+{% block extra_head %}
+<style>
+  .sv-strip { height:3px; background:linear-gradient(90deg,#1d4ed8,#3b82f6,#06b6d4); }
+
+  /* Stat row */
+  .stat-trio { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:26px; }
+  .stat-trio-card {
+    background:var(--white); border:1px solid var(--slate-200);
+    border-radius:var(--radius-lg); padding:18px 22px;
+    box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:14px;
+    text-decoration:none; transition:all .15s;
+  }
+  .stat-trio-card:hover { border-color:#93c5fd; transform:translateY(-1px); box-shadow:var(--shadow); }
+  .stat-trio-icon { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .stat-trio-icon svg { width:21px; height:21px; }
+  .stat-trio-num  { font-family:var(--font-display); font-size:28px; font-weight:700; line-height:1; }
+  .stat-trio-lbl  { font-size:12px; color:var(--slate-400); margin-top:3px; }
+
+  /* Filter tabs */
+  .filter-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+  .ftab {
+    padding:7px 18px; border-radius:20px; font-size:13px; font-weight:500;
+    text-decoration:none; border:1.5px solid var(--slate-200);
+    color:var(--slate-600); background:var(--white); transition:all .15s;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .ftab:hover { border-color:#93c5fd; color:#2563eb; }
+  .ftab.active { background:#2563eb; color:var(--white); border-color:#2563eb; }
+  .ftab .pill { font-size:11px; font-weight:700; padding:1px 7px; border-radius:10px; background:rgba(255,255,255,.3); }
+  .ftab:not(.active) .pill { background:#e2e8f0; color:var(--slate-600); }
+
+  /* Registration card - timeline style */
+  .reg-card {
+    background:var(--white); border:1.5px solid var(--slate-200);
+    border-radius:var(--radius-lg); margin-bottom:14px;
+    overflow:hidden; transition:box-shadow .15s;
+  }
+  .reg-card:hover { box-shadow:var(--shadow); }
+  .reg-card.status-approved { border-left:4px solid #22c55e; }
+  .reg-card.status-pending  { border-left:4px solid #f59e0b; }
+  .reg-card.status-rejected { border-left:4px solid #ef4444; }
+
+  .reg-card-inner { display:flex; align-items:stretch; gap:0; }
+  .reg-card-body  { flex:1; padding:18px 22px; }
+  .reg-card-side  { padding:18px 22px; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between; border-left:1px solid var(--slate-100); min-width:180px; }
+
+  .reg-course-code { font-family:monospace; font-size:12px; font-weight:700; color:#2563eb; background:#eff6ff; padding:3px 9px; border-radius:5px; display:inline-block; margin-bottom:6px; }
+  .reg-course-name { font-family:var(--font-display); font-size:15px; font-weight:600; color:var(--navy-800); margin-bottom:10px; }
+  .reg-meta { display:flex; flex-wrap:wrap; gap:14px; }
+  .reg-meta-item { display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--slate-500); }
+  .reg-meta-item svg { width:13px; height:13px; color:var(--slate-400); }
+
+  /* Result box - shown when approved/rejected */
+  .result-box {
+    margin-top:14px; padding:12px 16px; border-radius:var(--radius);
+    display:flex; align-items:flex-start; gap:10px;
+  }
+  .result-box.approved { background:#f0fdf4; border:1px solid #86efac; }
+  .result-box.rejected { background:#fef2f2; border:1px solid #fca5a5; }
+  .result-box svg { width:16px; height:16px; flex-shrink:0; margin-top:1px; }
+  .result-box .result-text { font-size:13px; font-weight:500; }
+  .result-box .result-sub  { font-size:12px; opacity:.75; margin-top:2px; }
+
+  /* Empty state nice */
+  .empty-reg { background:var(--white); border:1px solid var(--slate-200); border-radius:var(--radius-lg); padding:80px 20px; text-align:center; }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 0 0 3px rgba(37,99,235,.25);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--white);line-height:1.3;">Web Đăng Ký Tín Chỉ</div>
+    <div style="font-size:11px;color:#93c5fd;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">Cổng Sinh Viên</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Tổng quan</div>
+    <a href="/sv/dashboard" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+      Trang chủ
+    </a>
+    <div class="nav-section-label">Đăng ký học phần</div>
+    <a href="/sv/courses" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      Danh sách học phần
+    </a>
+    <a href="/sv/my-registrations" class="nav-link active">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      Đơn đăng ký của tôi
+      {% if stats.pending > 0 %}<span class="nav-badge">{{ stats.pending }}</span>{% endif %}
+    </a>
+    <div class="nav-section-label">Thông tin</div>
+    <a href="/sv/notifications" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      Thông báo
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-weight:700;">{{ session.name[0]|upper if session.name else 'S' }}</div>
+      <div>
+        <div class="sidebar-user-name">{{ session.name }}</div>
+        <div class="sidebar-user-role" style="color:#93c5fd;">Sinh viên</div>
+      </div>
+    </div>
+    <a href="/logout" class="sidebar-logout">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Đăng xuất
+    </a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="sv-strip"></div>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Theo Dõi Đơn Đăng Ký</div>
+      <div class="topbar-breadcrumb" style="margin-top:2px;"><a href="/sv/dashboard">Trang chủ</a> / Đơn đăng ký của tôi</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="/sv/courses" class="btn btn-primary btn-sm">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Đăng ký thêm
+      </a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-wrap" style="padding-top:20px">{% for c,m in messages %}<div class="alert alert-{{c}}">{{ m|safe }}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+
+  <div class="page-content">
+
+    <!-- Thống kê -->
+    <div class="stat-trio">
+      <a href="/sv/my-registrations?status=pending" class="stat-trio-card">
+        <div class="stat-trio-icon" style="background:#fef9c3;color:#b45309;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        </div>
+        <div>
+          <div class="stat-trio-num" style="color:#b45309;">{{ stats.pending }}</div>
+          <div class="stat-trio-lbl">Đang chờ xét duyệt</div>
+        </div>
+      </a>
+      <a href="/sv/my-registrations?status=approved" class="stat-trio-card">
+        <div class="stat-trio-icon" style="background:#dcfce7;color:#16a34a;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+        </div>
+        <div>
+          <div class="stat-trio-num" style="color:#16a34a;">{{ stats.approved }}</div>
+          <div class="stat-trio-lbl">Đã được duyệt</div>
+        </div>
+      </a>
+      <a href="/sv/my-registrations?status=rejected" class="stat-trio-card">
+        <div class="stat-trio-icon" style="background:#fee2e2;color:#dc2626;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <div>
+          <div class="stat-trio-num" style="color:#dc2626;">{{ stats.rejected }}</div>
+          <div class="stat-trio-lbl">Bị từ chối</div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs">
+      <a href="/sv/my-registrations" class="ftab {% if not status_filter %}active{% endif %}">
+        Tất cả <span class="pill">{{ stats.pending + stats.approved + stats.rejected }}</span>
+      </a>
+      <a href="/sv/my-registrations?status=pending" class="ftab {% if status_filter=='pending' %}active{% endif %}">
+        Chờ duyệt <span class="pill">{{ stats.pending }}</span>
+      </a>
+      <a href="/sv/my-registrations?status=approved" class="ftab {% if status_filter=='approved' %}active{% endif %}">
+        Đã duyệt <span class="pill">{{ stats.approved }}</span>
+      </a>
+      <a href="/sv/my-registrations?status=rejected" class="ftab {% if status_filter=='rejected' %}active{% endif %}">
+        Từ chối <span class="pill">{{ stats.rejected }}</span>
+      </a>
+    </div>
+
+    <!-- Danh sách đơn -->
+    {% if reg_data %}
+    {% for item in reg_data %}
+    <div class="reg-card status-{{ item.reg.status }}">
+      <div class="reg-card-inner">
+        <div class="reg-card-body">
+          <span class="reg-course-code">{{ item.course.code if item.course else '?' }}</span>
+          <div class="reg-course-name">{{ item.course.name if item.course else '—' }}</div>
+          <div class="reg-meta">
+            {% if item.course and item.course.credits %}
+            <div class="reg-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+              {{ item.course.credits }} tín chỉ
+            </div>
+            {% endif %}
+            {% if item.course and item.course.instructor %}
+            <div class="reg-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              {{ item.course.instructor }}
+            </div>
+            {% endif %}
+            <div class="reg-meta-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              Nộp đơn: {{ item.reg.submitted_at.strftime('%d/%m/%Y lúc %H:%M') if item.reg.submitted_at else '—' }}
+            </div>
+          </div>
+
+          <!-- Result box -->
+          {% if item.reg.status == 'approved' %}
+          <div class="result-box approved">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+            <div>
+              <div class="result-text" style="color:#166534;">Đơn đã được Phòng Đào Tạo chấp thuận!</div>
+              {% if item.course and item.course.schedule %}
+              <div class="result-sub" style="color:#166534;">
+                Lịch học: <strong>{{ item.course.schedule }}</strong>
+                {% if item.course.semester %} · Học kỳ {{ item.course.semester }}{% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% elif item.reg.status == 'rejected' %}
+          <div class="result-box rejected">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div>
+              <div class="result-text" style="color:#991b1b;">Đơn đăng ký đã bị từ chối.</div>
+              <div class="result-sub" style="color:#991b1b;">Vui lòng liên hệ Phòng Đào Tạo để biết lý do chi tiết.</div>
+            </div>
+          </div>
+          {% else %}
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;animation:pulse 1.5s infinite;"></div>
+            <span style="font-size:12.5px;color:#78350f;font-weight:500;">Đang chờ Phòng Đào Tạo xét duyệt…</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Side -->
+        <div class="reg-card-side">
+          <div style="text-align:right;">
+            <span class="badge badge-{{ item.reg.status }}" style="margin-bottom:8px;">
+              {% if item.reg.status=='pending' %}Chờ duyệt{% elif item.reg.status=='approved' %}Đã duyệt{% else %}Từ chối{% endif %}
+            </span>
+            {% if item.course %}
+            <div style="font-size:20px;font-weight:700;color:var(--navy-800);font-family:var(--font-display);">{{ item.course.credits }} TC</div>
+            {% endif %}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+            {% if item.reg.status == 'pending' %}
+            <form method="POST" action="/sv/my-registrations/{{ item.reg.id }}/cancel"
+                  onsubmit="return confirm('Hủy đơn đăng ký học phần {{ item.course.code if item.course else '' }}?')">
+              <button type="submit" class="btn btn-danger btn-xs">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2 2 0 0 1-2,2H8a2 2 0 0 1-2-2L5,6"/></svg>
+                Hủy đơn
+              </button>
+            </form>
+            {% endif %}
+            {% if item.reg.status == 'rejected' %}
+            <a href="/sv/courses" class="btn btn-outline btn-xs">Đăng ký lại</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <div class="empty-reg">
+      <div style="opacity:.3;margin-bottom:16px;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <p style="font-size:15px;font-weight:600;color:var(--navy-700);">
+        {% if status_filter %}Không có đơn nào ở trạng thái này{% else %}Bạn chưa nộp đơn đăng ký nào{% endif %}
+      </p>
+      <p style="margin-top:8px;font-size:13px;color:var(--slate-400);">
+        {% if status_filter %}<a href="/sv/my-registrations" style="color:#2563eb;">← Xem tất cả</a>{% else %}<a href="/sv/courses" style="color:#2563eb;">Xem danh sách học phần để đăng ký →</a>{% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50%      { opacity:.4; }
+}
+</style>
+{% endblock %}

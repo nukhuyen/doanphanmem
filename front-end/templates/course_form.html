@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Sửa' if course else 'Thêm' }} Học phần{% endblock %}
+{% block topbar_title %}{{ '✏️ Sửa' if course else '➕ Thêm' }} Học phần{% endblock %}
+
+{% block content %}
+<div class="page-hdr">
+  <h1>{{ 'Sửa học phần' if course else 'Thêm học phần mới' }}</h1>
+  <a href="{{ url_for('admin_courses') }}" class="btn btn-outline-secondary btn-sm">← Quay lại</a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card2">
+      <div class="card2-body">
+        <form method="POST" action="{{ url_for('course_edit', cid=course.id) if course else url_for('course_create') }}">
+          <div class="row g-3 mb-3">
+            <div class="col-sm-4">
+              <label class="form-label2">Mã học phần *</label>
+              <input type="text" name="code" class="form-control"
+                     value="{{ course.code if course else '' }}"
+                     {{ 'readonly' if course }} required placeholder="CS101">
+            </div>
+            <div class="col-sm-8">
+              <label class="form-label2">Tên học phần *</label>
+              <input type="text" name="name" class="form-control"
+                     value="{{ course.name if course else '' }}" required placeholder="Lập trình cơ bản">
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-sm-4">
+              <label class="form-label2">Số tín chỉ</label>
+              <input type="number" name="credits" class="form-control" min="1" max="10"
+                     value="{{ course.credits if course else 3 }}">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label2">Sĩ số tối đa</label>
+              <input type="number" name="max_students" class="form-control" min="1"
+                     value="{{ course.max_students if course else 40 }}">
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label2">Học kỳ</label>
+              <input type="text" name="semester" class="form-control"
+                     value="{{ course.semester if course else '' }}" placeholder="HK1-2024">
+            </div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label2">Giảng viên</label>
+              <input type="text" name="instructor" class="form-control"
+                     value="{{ course.instructor if course else '' }}" placeholder="GV. Nguyễn A">
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label2">Lịch học</label>
+              <input type="text" name="schedule" class="form-control"
+                     value="{{ course.schedule if course else '' }}" placeholder="Thứ 2, tiết 1-3">
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label2">Môn tiên quyết</label>
+            <select name="prerequisite_id" class="form-select">
+              <option value="">— Không có —</option>
+              {% for c in all_courses %}
+              <option value="{{ c.id }}" {{ 'selected' if course and course.prerequisite_id == c.id }}>
+                {{ c.code }} — {{ c.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">{{ '💾 Lưu' if course else '✅ Tạo học phần' }}</button>
+            <a href="{{ url_for('admin_courses') }}" class="btn btn-outline-secondary">Hủy</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

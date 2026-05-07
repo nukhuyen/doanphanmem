@@ -1,0 +1,900 @@
+{% extends "base.html" %}
+{% block title %}Quản Lý Học Phần — Phòng Đào Tạo{% endblock %}
+{% block extra_head %}
+<style>
+  .pdt-header-strip { height:3px; background:linear-gradient(90deg,#1e4d8c,#2563eb,#16a34a); }
+  .nav-link .nav-icon svg { width:17px; height:17px; }
+  .action-group { display:flex; gap:5px; justify-content:flex-end; }
+  .icon-btn { width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1.5px solid; cursor:pointer; background:transparent; transition:all .15s; }
+  .icon-btn svg { width:13px; height:13px; }
+  .icon-btn-edit        { border-color:#bfdbfe; color:#2563eb; }
+  .icon-btn-edit:hover  { background:#eff6ff; border-color:#93c5fd; }
+  .icon-btn-open        { border-color:#ddd6fe; color:#7c3aed; }
+  .icon-btn-open:hover  { background:#f5f3ff; border-color:#c4b5fd; }
+  .icon-btn-toggle-on   { border-color:#fde68a; color:#b45309; }
+  .icon-btn-toggle-on:hover  { background:#fef9c3; }
+  .icon-btn-toggle-off  { border-color:#bbf7d0; color:var(--success); }
+  .icon-btn-toggle-off:hover { background:#f0fdf4; }
+  .icon-btn-delete      { border-color:#fecaca; color:var(--danger); }
+  .icon-btn-delete:hover { background:#fff1f2; }
+
+  .filter-tab { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:500; text-decoration:none; border:1.5px solid var(--slate-200); color:var(--slate-600); background:var(--white); transition:all .15s; }
+  .filter-tab:hover { border-color:#93c5fd; color:#2563eb; }
+  .filter-tab.active { background:#2563eb; color:var(--white); border-color:#2563eb; }
+
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+  .stat-card { background:var(--white); border:1.5px solid var(--slate-200); border-radius:10px; padding:12px 16px; }
+  .stat-card-label { font-size:11px; color:var(--slate-400); font-weight:600; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+  .stat-card-val { font-size:24px; font-weight:700; }
+  .stat-val-blue   { color:#2563eb; }
+  .stat-val-green  { color:#16a34a; }
+  .stat-val-gray   { color:var(--slate-500); }
+  .stat-val-amber  { color:#b45309; }
+
+  .pagination { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-top:1px solid var(--slate-100); }
+  .pg-info { font-size:13px; color:var(--slate-400); }
+  .pg-btns { display:flex; gap:4px; }
+  .pg-btn { width:32px; height:32px; border-radius:6px; border:1.5px solid var(--slate-200); background:var(--white); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--slate-600); text-decoration:none; transition:all .15s; }
+  .pg-btn:hover { border-color:#93c5fd; color:#2563eb; }
+  .pg-btn.active { background:#2563eb; border-color:#2563eb; color:white; font-weight:700; }
+  .pg-btn.disabled { opacity:.4; pointer-events:none; }
+
+  .nb-cntt  { background:#eff6ff; color:#1d4ed8; border-color:#bfdbfe; }
+  .nb-gdth  { background:#f0fdf4; color:#166534; border-color:#bbf7d0; }
+  .nb-luat  { background:#fff7ed; color:#c2410c; border-color:#fed7aa; }
+  .nb-hcnn  { background:#fdf4ff; color:#7e22ce; border-color:#e9d5ff; }
+  .nb-qtkd  { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+  .nb-ktoan { background:#f0fdfa; color:#065f46; border-color:#99f6e4; }
+  .nb-tcnh  { background:#fff1f2; color:#9f1239; border-color:#fecdd3; }
+  .nb-chung { background:#f8fafc; color:#475569; border-color:#cbd5e1; }
+
+  .major-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:8px; }
+  .major-card { border:1.5px solid var(--slate-200); border-radius:8px; padding:12px 14px; cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:10px; }
+  .major-card:hover { border-color:#93c5fd; background:#f0f7ff; }
+  .major-card.selected { border-color:#2563eb; background:#eff6ff; }
+  .major-card.selected-purple { border-color:#7c3aed; background:#f5f3ff; }
+  .major-card input[type=checkbox] { accent-color:#2563eb; width:15px; height:15px; flex-shrink:0; }
+  .major-card-info { flex:1; }
+  .major-card-code { font-size:12px; font-weight:700; color:#2563eb; font-family:monospace; }
+  .major-card-name { font-size:12.5px; color:var(--slate-600); margin-top:1px; }
+
+  .semester-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .semester-chip { padding:5px 12px; border-radius:20px; font-size:12px; font-weight:600; border:1.5px solid var(--slate-200); cursor:pointer; transition:all .15s; color:var(--slate-600); background:var(--white); }
+  .semester-chip:hover { border-color:#93c5fd; color:#2563eb; }
+  .semester-chip.selected { background:#2563eb; color:white; border-color:#2563eb; }
+  .semester-chip.selected-purple { background:#7c3aed; color:white; border-color:#7c3aed; }
+
+  .import-summary { background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:8px; padding:10px 14px; margin-top:12px; font-size:13px; color:#166534; display:none; }
+  .import-summary.visible { display:block; }
+  .reg-summary-box { background:#faf5ff; border:1.5px solid #ddd6fe; border-radius:8px; padding:10px 14px; margin-top:12px; font-size:13px; color:#6d28d9; display:none; }
+  .reg-summary-box.visible { display:block; }
+
+  /* Banner thông báo đợt đăng ký đang mở */
+  .reg-banner { background:linear-gradient(90deg,#7c3aed,#6d28d9); color:white; border-radius:10px; padding:12px 18px; display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .reg-banner-icon { width:36px; height:36px; background:rgba(255,255,255,.15); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .reg-banner-text { flex:1; font-size:13px; }
+  .reg-banner-title { font-weight:700; font-size:14px; }
+  .reg-banner-sub { opacity:.85; margin-top:2px; }
+
+  .major-badge { display:inline-block; font-size:11px; font-weight:600; font-family:monospace; padding:2px 7px; border-radius:4px; background:#f1f5f9; color:var(--slate-600); border:1px solid var(--slate-200); }
+  .semester-badge { display:inline-block; font-size:11px; padding:2px 7px; border-radius:4px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; }
+
+  .filter-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .select-filter { padding:5px 10px; border-radius:6px; border:1.5px solid var(--slate-200); font-size:13px; color:var(--slate-700); background:var(--white); cursor:pointer; }
+  .select-filter:focus { outline:none; border-color:#93c5fd; }
+
+  /* Tooltip trạng thái mở đăng ký trên từng dòng */
+  .open-reg-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:2px 8px; border-radius:12px; background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe; }
+  .open-reg-badge .dot { width:6px; height:6px; border-radius:50%; background:#7c3aed; animation:pulse-dot 1.2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 0 0 3px rgba(37,99,235,.25);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--white);line-height:1.3;">Web Đăng Ký Tín Chỉ</div>
+    <div style="font-size:11px;color:#93c5fd;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">Phòng Đào Tạo</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Tổng quan</div>
+    <a href="/pdt/dashboard" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+      Dashboard
+    </a>
+    <div class="nav-section-label">Nghiệp vụ</div>
+    <a href="/pdt/courses" class="nav-link active">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      Quản lý học phần
+    </a>
+    <a href="/pdt/registrations" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      Xét duyệt đơn
+      {% if pending_count|default(0) > 0 %}<span class="nav-badge">{{ pending_count }}</span>{% endif %}
+    </a>
+    <a href="/pdt/config" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+      Quy tắc đăng ký
+    </a>
+    <a href="/pdt/notifications" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      Gửi thông báo
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-weight:700;">{{ session.name[0] if session.name else 'P' }}</div>
+      <div>
+        <div class="sidebar-user-name">{{ session.name }}</div>
+        <div class="sidebar-user-role" style="color:#93c5fd;">Phòng Đào Tạo</div>
+      </div>
+    </div>
+    <a href="/logout" class="sidebar-logout">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Đăng xuất
+    </a>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <div class="pdt-header-strip"></div>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Quản Lý Học Phần</div>
+      <div class="topbar-breadcrumb" style="margin-top:2px;"><a href="/pdt/dashboard">Dashboard</a> / Học phần</div>
+    </div>
+    <div class="topbar-actions" style="display:flex;gap:8px;">
+      <!-- Import CTĐT -->
+      <button class="btn btn-outline btn-sm" onclick="openModal('modal-import-curriculum')"
+              style="border-color:#16a34a;color:#16a34a;display:flex;align-items:center;gap:5px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Import từ CTĐT
+      </button>
+
+      <!-- ★ MỞ ĐĂNG KÝ (topbar) — mở đợt đăng ký mới toàn hệ thống -->
+      <button class="btn btn-sm" onclick="openModal('modal-open-registration')"
+              style="background:#7c3aed;border-color:#7c3aed;color:white;display:flex;align-items:center;gap:5px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/>
+        </svg>
+        Mở đăng ký
+      </button>
+
+      <!-- Thêm học phần -->
+      <button class="btn btn-primary btn-sm" onclick="openModal('modal-add-course')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Thêm học phần
+      </button>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-wrap" style="padding-top:20px">
+        {% for c,m in messages %}<div class="alert alert-{{c}}">{{m}}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- STATS ROW -->
+  <div style="padding:16px 24px 0;">
+
+    <!-- Banner đợt đăng ký đang mở (hiển thị khi có active_registration) -->
+    {% if active_registration %}
+    <div class="reg-banner">
+      <div class="reg-banner-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div class="reg-banner-text">
+        <div class="reg-banner-title">🟢 Đang có đợt đăng ký mở: {{ active_registration.label }}</div>
+        <div class="reg-banner-sub">{{ active_registration.start_str }} → {{ active_registration.end_str }} &nbsp;|&nbsp; {{ active_registration.total_open }} học phần đang mở</div>
+      </div>
+      <form method="POST" action="/pdt/courses/close-registration" style="display:inline;">
+        <button type="submit" class="btn btn-sm"
+                style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);color:white;"
+                onclick="return confirm('Đóng toàn bộ đợt đăng ký này?')">
+          Đóng đợt
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-label">Tổng học phần</div>
+        <div class="stat-card-val stat-val-blue">{{ stats.total }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Đang mở</div>
+        <div class="stat-card-val stat-val-green">{{ stats.active }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Đã đóng</div>
+        <div class="stat-card-val stat-val-gray">{{ stats.closed }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Môn chung nhiều ngành</div>
+        <div class="stat-card-val stat-val-amber">{{ stats.shared }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+        <span class="card-title" style="display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Danh sách học phần ({{ total_courses }})
+        </span>
+        <div class="filter-row">
+          <a href="/pdt/courses{% if major_filter or semester_filter or q %}?{% if major_filter %}major={{ major_filter }}&{% endif %}{% if semester_filter %}semester={{ semester_filter }}&{% endif %}{% if q %}q={{ q }}{% endif %}{% endif %}"
+             class="filter-tab {% if not status_filter %}active{% endif %}">Tất cả</a>
+          <a href="/pdt/courses?status=active{% if major_filter %}&major={{ major_filter }}{% endif %}{% if semester_filter %}&semester={{ semester_filter }}{% endif %}"
+             class="filter-tab {% if status_filter=='active' %}active{% endif %}">Đang mở</a>
+          <a href="/pdt/courses?status=closed{% if major_filter %}&major={{ major_filter }}{% endif %}{% if semester_filter %}&semester={{ semester_filter }}{% endif %}"
+             class="filter-tab {% if status_filter=='closed' %}active{% endif %}">Đã đóng</a>
+
+          <select class="select-filter" onchange="applyFilter()" id="filter-major">
+            <option value="">-- Tất cả ngành --</option>
+            {% for m in majors %}
+            <option value="{{ m.code }}" {% if major_filter == m.code %}selected{% endif %}>{{ m.code }} – {{ m.name }}</option>
+            {% endfor %}
+          </select>
+
+          <select class="select-filter" onchange="applyFilter()" id="filter-semester">
+            <option value="">-- Tất cả HK --</option>
+            {% for s in range(1, 9) %}
+            <option value="{{ s }}" {% if semester_filter == s|string %}selected{% endif %}>Học kỳ {{ s }}</option>
+            {% endfor %}
+          </select>
+
+          <form method="GET" action="/pdt/courses" style="display:flex;gap:6px;" id="main-filter-form">
+            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}"/>{% endif %}
+            <input type="hidden" name="major"    id="hidden-major"    value="{{ major_filter or '' }}"/>
+            <input type="hidden" name="semester" id="hidden-semester" value="{{ semester_filter or '' }}"/>
+            <div class="search-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tìm kiếm..." style="width:180px;"/>
+            </div>
+            <button type="submit" class="btn btn-outline btn-sm">Lọc</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;">#</th>
+                <th>Mã môn</th>
+                <th>Tên học phần</th>
+                <th style="text-align:center;">TC</th>
+                <th>Ngành</th>
+                <th style="text-align:center;">HK</th>
+                <th>Giảng viên</th>
+                <th style="text-align:center;">Sĩ số</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in courses %}
+              {% set sec = c.sections[0] if c.sections else none %}
+              {% set is_open = sec and sec.active %}
+              <tr>
+                <td style="color:var(--slate-400);font-size:12px;">{{ (page-1)*15 + loop.index }}</td>
+                <td>
+                  <span style="font-family:monospace;font-size:13px;font-weight:600;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:4px;">{{ c.code }}</span>
+                </td>
+                <td>
+                  <div style="font-size:13.5px;font-weight:600;color:var(--navy-800);">{{ c.name }}</div>
+                  {% if sec and sec.schedule %}<div style="font-size:11.5px;color:var(--slate-400);">{{ sec.schedule }}</div>{% endif %}
+                </td>
+                <td style="text-align:center;font-weight:700;color:var(--navy-700);">{{ c.credits }}</td>
+                <td>
+                  {% if c.majors %}
+                    <div style="display:flex;flex-wrap:wrap;gap:3px;">
+                      {% for maj in c.majors %}
+                        <span class="major-badge nb-{{ maj.code.lower() }}">{{ maj.code }}</span>
+                      {% endfor %}
+                      {% if c.majors|length >= 3 %}
+                        <span class="major-badge nb-chung" title="Môn chung nhiều ngành">chung</span>
+                      {% endif %}
+                    </div>
+                  {% else %}—{% endif %}
+                </td>
+                <td style="text-align:center;">
+                  {% if c.semester_no %}
+                    <span class="semester-badge">HK{{ c.semester_no }}</span>
+                  {% else %}—{% endif %}
+                </td>
+                <td style="font-size:13px;color:var(--slate-600);">{{ sec.instructor if sec and sec.instructor else '—' }}</td>
+                <td style="text-align:center;">
+                  {% if sec %}
+                    {% set pct = ((sec.current_enrolled or 0) / sec.max_students * 100)|int %}
+                    <span style="font-size:13px;font-weight:600;color:{% if pct>=100 %}var(--danger){% elif pct>=80 %}#b45309{% else %}var(--navy-700){% endif %};">
+                      {{ sec.current_enrolled or 0 }}/{{ sec.max_students }}
+                    </span>
+                  {% else %}—{% endif %}
+                </td>
+                <td>
+                  {% if is_open %}
+                    <span class="open-reg-badge"><span class="dot"></span>Đang mở</span>
+                  {% else %}
+                    <span class="badge badge-inactive">Đã đóng</span>
+                  {% endif %}
+                </td>
+
+                <!-- ════════ THAO TÁC ════════ -->
+                <td>
+                  <div class="action-group">
+
+                    <!-- Sửa -->
+                    <button class="icon-btn icon-btn-edit" title="Sửa thông tin"
+                      onclick="openEditCourse(
+                        {{ c.id }},
+                        '{{ c.code }}',
+                        '{{ c.name|replace("'", "\\'") }}',
+                        {{ c.credits }},
+                        {{ sec.max_students if sec else 40 }},
+                        '{{ sec.instructor|replace("'", "\\'") if sec and sec.instructor else '' }}',
+                        '{{ sec.schedule|replace("'", "\\'") if sec and sec.schedule else '' }}',
+                        '{{ sec.semester|replace("'", "\\'") if sec and sec.semester else '' }}'
+                      )">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+
+                    <!-- ★ MỞ ĐĂNG KÝ NHANH (từng dòng) — chỉ hiện khi đang đóng -->
+                    {% if not is_open %}
+                    <button class="icon-btn icon-btn-open" title="Mở đăng ký học phần này"
+                            onclick="openQuickRegModal({{ c.id }}, '{{ c.code }}', '{{ c.name|replace("'", "\\'") }}')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                        <line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/>
+                      </svg>
+                    </button>
+                    {% endif %}
+
+                    <!-- Toggle đóng/mở (giữ nguyên) -->
+                    <form method="POST" action="/pdt/courses/{{ c.id }}/toggle" style="display:inline;">
+                      <button type="submit" class="icon-btn {% if is_open %}icon-btn-toggle-on{% else %}icon-btn-toggle-off{% endif %}"
+                              title="{{ 'Đóng học phần' if is_open else 'Bật học phần' }}">
+                        {% if is_open %}
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        {% else %}
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        {% endif %}
+                      </button>
+                    </form>
+
+                    <!-- Xóa -->
+                    <form method="POST" action="/pdt/courses/{{ c.id }}/delete" style="display:inline;"
+                          onsubmit="return confirm('Xóa học phần {{ c.code }}?')">
+                      <button type="submit" class="icon-btn icon-btn-delete" title="Xóa">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2 2 0 0 1-2,2H8a2 2 0 0 1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/></svg>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="10"><div class="empty-state"><p>Chưa có học phần nào</p></div></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- PAGINATION -->
+        {% if total_pages > 1 %}
+        <div class="pagination">
+          <span class="pg-info">
+            Hiển thị {{ (page-1)*15 + 1 }}–{{ [page*15, total_courses]|min }} / {{ total_courses }} học phần
+          </span>
+          <div class="pg-btns">
+            <a class="pg-btn {% if page == 1 %}disabled{% endif %}"
+               href="?page={{ page-1 }}&status={{ status_filter }}&q={{ q }}&major={{ major_filter }}&semester={{ semester_filter }}">&#8592;</a>
+            {% for p in range(1, total_pages+1) %}
+              {% if p == page %}
+                <span class="pg-btn active">{{ p }}</span>
+              {% elif p == 1 or p == total_pages or (p >= page-2 and p <= page+2) %}
+                <a class="pg-btn" href="?page={{ p }}&status={{ status_filter }}&q={{ q }}&major={{ major_filter }}&semester={{ semester_filter }}">{{ p }}</a>
+              {% elif p == page-3 or p == page+3 %}
+                <span class="pg-btn disabled">…</span>
+              {% endif %}
+            {% endfor %}
+            <a class="pg-btn {% if page == total_pages %}disabled{% endif %}"
+               href="?page={{ page+1 }}&status={{ status_filter }}&q={{ q }}&major={{ major_filter }}&semester={{ semester_filter }}">&#8594;</a>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div><!-- /main-wrap -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL 1 — MỞ ĐỢT ĐĂNG KÝ (từ topbar, toàn hệ thống)
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-open-registration">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <span class="modal-title" style="display:flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+          <line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/>
+        </svg>
+        Mở Đợt Đăng Ký Học Phần
+      </span>
+      <button class="modal-close" onclick="closeModal('modal-open-registration')">×</button>
+    </div>
+
+    <form method="POST" action="/pdt/courses/open-registration" id="form-open-reg">
+      <div class="modal-body">
+
+        <!-- Bước 1: Ngành -->
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;">1. Chọn ngành áp dụng</label>
+          <div style="display:flex;gap:8px;margin-bottom:6px;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="regSelectAllMajors(true)">Chọn tất cả</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="regSelectAllMajors(false)">Bỏ chọn</button>
+          </div>
+          <div class="major-grid">
+            {% set major_list = [
+              ('CNTT',  'Công nghệ thông tin'),
+              ('GDTH',  'Giáo dục tiểu học'),
+              ('LUAT',  'Luật'),
+              ('HCNN',  'Hành chính nhà nước'),
+              ('QTKD',  'Quản trị kinh doanh'),
+              ('KTOAN', 'Kế toán'),
+              ('TCNH',  'Tài chính – Ngân hàng'),
+            ] %}
+            {% for code, name in major_list %}
+            <label class="major-card" onclick="toggleRegMajorCard(this)">
+              <input type="checkbox" name="reg_majors" value="{{ code }}" style="accent-color:#7c3aed;"/>
+              <div class="major-card-info">
+                <div class="major-card-code" style="color:#7c3aed;">{{ code }}</div>
+                <div class="major-card-name">{{ name }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Bước 2: Học kỳ -->
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" style="font-weight:600;">2. Chọn học kỳ mở đăng ký</label>
+          <div style="display:flex;gap:8px;margin-bottom:6px;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="regSelectAllSemesters(true)">Tất cả HK</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="regSelectAllSemesters(false)">Bỏ chọn</button>
+          </div>
+          <div class="semester-chips" id="reg-semester-chips">
+            {% for s in range(1, 9) %}
+            <label class="semester-chip" onclick="toggleRegSemesterChip(this)">
+              <input type="checkbox" name="reg_semesters" value="{{ s }}" style="display:none;"/>
+              HK{{ s }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Bước 3: Thời gian -->
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" style="font-weight:600;">3. Thời gian đợt đăng ký</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Ngày bắt đầu *</label>
+              <input type="datetime-local" name="reg_start" id="reg-start" class="form-control" required/>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Ngày kết thúc *</label>
+              <input type="datetime-local" name="reg_end" id="reg-end" class="form-control" required/>
+            </div>
+          </div>
+          <div style="margin-top:10px;">
+            <label class="form-label">Tên đợt đăng ký</label>
+            <input type="text" name="reg_label" id="reg-label" class="form-control"
+                   placeholder="VD: Đợt 1 – HK1 2025-2026"/>
+          </div>
+        </div>
+
+        <!-- Bước 4: Tuỳ chọn -->
+        <div class="form-group" style="margin-top:14px;">
+          <label class="form-label" style="font-weight:600;">4. Tuỳ chọn</label>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" name="notify_students" value="1" id="cb-notify" checked style="accent-color:#7c3aed;"/>
+              <label for="cb-notify" style="font-size:13px;color:var(--slate-600);cursor:pointer;">Gửi thông báo cho sinh viên ngay sau khi mở</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" name="reset_enrollments" value="1" id="cb-reset" style="accent-color:#7c3aed;"/>
+              <label for="cb-reset" style="font-size:13px;color:var(--slate-600);cursor:pointer;">Xoá đăng ký cũ trước khi mở đợt mới</label>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" name="auto_close_prev" value="1" id="cb-close-prev" checked style="accent-color:#7c3aed;"/>
+              <label for="cb-close-prev" style="font-size:13px;color:var(--slate-600);cursor:pointer;">Tự động đóng các học phần đang mở của đợt cũ</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="reg-summary-box" id="reg-summary">
+          <strong>✅ Sẵn sàng mở đăng ký!</strong>
+          Đã chọn <span id="reg-sum-majors">0</span> ngành,
+          <span id="reg-sum-semesters">0</span> học kỳ.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-open-registration')">Hủy</button>
+        <button type="submit" class="btn btn-sm" id="btn-do-open-reg" disabled
+                style="background:#7c3aed;border-color:#7c3aed;color:white;display:flex;align-items:center;gap:5px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+          Xác nhận mở đăng ký
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL 2 — MỞ ĐĂNG KÝ NHANH (từng học phần trong bảng)
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-quick-open">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <span class="modal-title" style="display:flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        Mở Đăng Ký Học Phần
+      </span>
+      <button class="modal-close" onclick="closeModal('modal-quick-open')">×</button>
+    </div>
+    <form method="POST" id="form-quick-open" action="">
+      <div class="modal-body">
+        <!-- Thông tin học phần -->
+        <div style="background:#faf5ff;border:1.5px solid #ddd6fe;border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+          <div style="font-size:11px;color:#7c3aed;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Học phần được chọn</div>
+          <div style="font-weight:700;color:var(--navy-800);font-size:14px;" id="qo-course-name">—</div>
+          <div style="font-family:monospace;font-size:12px;color:#7c3aed;margin-top:2px;" id="qo-course-code">—</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Ngày bắt đầu</label>
+            <input type="datetime-local" name="open_start" id="qo-start" class="form-control"/>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Ngày kết thúc</label>
+            <input type="datetime-local" name="open_end" id="qo-end" class="form-control"/>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label">Ghi chú (tuỳ chọn)</label>
+          <input type="text" name="open_note" class="form-control" placeholder="VD: Mở bổ sung đợt 2"/>
+        </div>
+
+        <div style="margin-top:12px;display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" name="notify_quick" value="1" id="cb-notify-quick" checked style="accent-color:#7c3aed;"/>
+          <label for="cb-notify-quick" style="font-size:13px;color:var(--slate-600);cursor:pointer;">Gửi thông báo cho sinh viên đủ điều kiện</label>
+        </div>
+
+        <div style="margin-top:8px;padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:12px;color:#92400e;">
+          💡 Thao tác này sẽ bật trạng thái <strong>active</strong> cho học phần và tạo bản ghi lịch sử mở đăng ký.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-quick-open')">Hủy</button>
+        <button type="submit" class="btn btn-sm"
+                style="background:#7c3aed;border-color:#7c3aed;color:white;display:flex;align-items:center;gap:5px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+          Mở đăng ký
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL — IMPORT TỪ CHƯƠNG TRÌNH ĐÀO TẠO (giữ nguyên)
+══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-import-curriculum">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <span class="modal-title" style="display:flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import từ Chương Trình Đào Tạo
+      </span>
+      <button class="modal-close" onclick="closeModal('modal-import-curriculum')">×</button>
+    </div>
+    <form method="POST" action="/pdt/courses/import-curriculum" id="form-import">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" style="font-weight:600;">1. Chọn ngành cần import</label>
+          <div style="display:flex;gap:8px;margin-bottom:6px;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="selectAllMajors(true)">Chọn tất cả</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="selectAllMajors(false)">Bỏ chọn</button>
+          </div>
+          <div class="major-grid">
+            {% set major_list = [
+              ('CNTT',  'Công nghệ thông tin'),
+              ('GDTH',  'Giáo dục tiểu học'),
+              ('LUAT',  'Luật'),
+              ('HCNN',  'Hành chính nhà nước'),
+              ('QTKD',  'Quản trị kinh doanh'),
+              ('KTOAN', 'Kế toán'),
+              ('TCNH',  'Tài chính – Ngân hàng'),
+            ] %}
+            {% for code, name in major_list %}
+            <label class="major-card" onclick="toggleMajorCard(this)">
+              <input type="checkbox" name="majors" value="{{ code }}"/>
+              <div class="major-card-info">
+                <div class="major-card-code">{{ code }}</div>
+                <div class="major-card-name">{{ name }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" style="font-weight:600;">2. Chọn học kỳ cần mở đăng ký</label>
+          <div style="display:flex;gap:8px;margin-bottom:6px;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="selectAllSemesters(true)">Tất cả HK</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="selectAllSemesters(false)">Bỏ chọn</button>
+          </div>
+          <div class="semester-chips">
+            {% for s in range(1, 9) %}
+            <label class="semester-chip" onclick="toggleSemesterChip(this)">
+              <input type="checkbox" name="semesters" value="{{ s }}" style="display:none;"/>
+              HK{{ s }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <label class="form-label" style="font-weight:600;">3. Cài đặt mặc định khi import</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Sĩ số tối đa mỗi lớp</label>
+              <input type="number" name="default_max_students" class="form-control" value="40" min="1"/>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Học kỳ hiển thị (VD: HK2-2025)</label>
+              <input type="text" name="default_semester_label" class="form-control" placeholder="HK1-2025"/>
+            </div>
+          </div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" name="skip_existing" value="1" id="cb-skip" checked style="accent-color:#2563eb;"/>
+            <label for="cb-skip" style="font-size:13px;color:var(--slate-600);cursor:pointer;">Bỏ qua môn đã tồn tại (không ghi đè)</label>
+          </div>
+          <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" name="auto_open" value="1" id="cb-open" checked style="accent-color:#2563eb;"/>
+            <label for="cb-open" style="font-size:13px;color:var(--slate-600);cursor:pointer;">Tự động mở đăng ký sau khi import</label>
+          </div>
+        </div>
+
+        <div class="import-summary" id="import-summary">
+          <strong>✅ Sẵn sàng import!</strong> Đã chọn <span id="sum-majors">0</span> ngành, <span id="sum-semesters">0</span> học kỳ.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-import-curriculum')">Hủy</button>
+        <button type="submit" class="btn btn-primary" style="background:#16a34a;border-color:#16a34a;" id="btn-do-import" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Tiến hành Import
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ADD -->
+<div class="modal-overlay" id="modal-add-course">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-title">Thêm Học Phần Mới</span>
+      <button class="modal-close" onclick="closeModal('modal-add-course')">×</button>
+    </div>
+    <form method="POST" action="/pdt/courses/add">
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group"><label class="form-label">Mã môn *</label><input type="text" name="code" class="form-control" placeholder="VD: CS101" required/></div>
+          <div class="form-group"><label class="form-label">Số tín chỉ *</label><input type="number" name="credits" class="form-control" value="3" min="1" max="10" required/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Tên học phần *</label><input type="text" name="name" class="form-control" placeholder="VD: Lập trình C" required/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group"><label class="form-label">Giảng viên</label><input type="text" name="instructor" class="form-control" placeholder="Họ tên giảng viên"/></div>
+          <div class="form-group"><label class="form-label">Sĩ số tối đa</label><input type="number" name="max_students" class="form-control" value="40" min="1"/></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group"><label class="form-label">Lịch học</label><input type="text" name="schedule" class="form-control" placeholder="VD: T2,5 7h30-9h"/></div>
+          <div class="form-group"><label class="form-label">Học kỳ</label><input type="text" name="semester" class="form-control" placeholder="VD: HK2-2025"/></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-add-course')">Hủy</button>
+        <button type="submit" class="btn btn-primary">Thêm học phần</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDIT -->
+<div class="modal-overlay" id="modal-edit-course">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-title">Chỉnh Sửa Học Phần</span>
+      <button class="modal-close" onclick="closeModal('modal-edit-course')">×</button>
+    </div>
+    <form method="POST" id="form-edit-course" action="">
+      <div class="modal-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group"><label class="form-label">Mã môn</label><input type="text" name="code" id="ec-code" class="form-control" required/></div>
+          <div class="form-group"><label class="form-label">Số tín chỉ</label><input type="number" name="credits" id="ec-credits" class="form-control" required/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Tên học phần</label><input type="text" name="name" id="ec-name" class="form-control" required/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group"><label class="form-label">Giảng viên</label><input type="text" name="instructor" id="ec-instructor" class="form-control"/></div>
+          <div class="form-group"><label class="form-label">Sĩ số tối đa</label><input type="number" name="max_students" id="ec-max" class="form-control"/></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group"><label class="form-label">Lịch học</label><input type="text" name="schedule" id="ec-schedule" class="form-control"/></div>
+          <div class="form-group"><label class="form-label">Học kỳ</label><input type="text" name="semester" id="ec-semester" class="form-control"/></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit-course')">Hủy</button>
+        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+/* ─── EDIT COURSE ─── */
+function openEditCourse(id, code, name, credits, max, instructor, schedule, semester) {
+  document.getElementById('form-edit-course').action = '/pdt/courses/' + id + '/edit';
+  document.getElementById('ec-code').value       = code;
+  document.getElementById('ec-name').value       = name;
+  document.getElementById('ec-credits').value    = credits;
+  document.getElementById('ec-max').value        = max;
+  document.getElementById('ec-instructor').value = instructor;
+  document.getElementById('ec-schedule').value   = schedule;
+  document.getElementById('ec-semester').value   = semester;
+  openModal('modal-edit-course');
+}
+
+/* ─── FILTER ─── */
+function applyFilter() {
+  document.getElementById('hidden-major').value    = document.getElementById('filter-major').value;
+  document.getElementById('hidden-semester').value = document.getElementById('filter-semester').value;
+  document.getElementById('main-filter-form').submit();
+}
+
+/* ─── IMPORT CURRICULUM ─── */
+function toggleMajorCard(label) {
+  const cb = label.querySelector('input[type=checkbox]');
+  setTimeout(() => { label.classList.toggle('selected', cb.checked); updateImportSummary(); }, 0);
+}
+function toggleSemesterChip(label) {
+  const cb = label.querySelector('input[type=checkbox]');
+  setTimeout(() => { label.classList.toggle('selected', cb.checked); updateImportSummary(); }, 0);
+}
+function selectAllMajors(val) {
+  document.querySelectorAll('#form-import input[name=majors]').forEach(cb => {
+    cb.checked = val;
+    cb.closest('.major-card').classList.toggle('selected', val);
+  });
+  updateImportSummary();
+}
+function selectAllSemesters(val) {
+  document.querySelectorAll('#form-import input[name=semesters]').forEach(cb => {
+    cb.checked = val;
+    cb.closest('.semester-chip').classList.toggle('selected', val);
+  });
+  updateImportSummary();
+}
+function updateImportSummary() {
+  const majors    = document.querySelectorAll('#form-import input[name=majors]:checked').length;
+  const semesters = document.querySelectorAll('#form-import input[name=semesters]:checked').length;
+  const summary   = document.getElementById('import-summary');
+  const btn       = document.getElementById('btn-do-import');
+  document.getElementById('sum-majors').textContent    = majors;
+  document.getElementById('sum-semesters').textContent = semesters;
+  const ok = majors > 0 && semesters > 0;
+  summary.classList.toggle('visible', ok);
+  btn.disabled = !ok;
+}
+
+/* ─── MỞ ĐỢT ĐĂNG KÝ (topbar modal) ─── */
+function toggleRegMajorCard(label) {
+  const cb = label.querySelector('input[type=checkbox]');
+  setTimeout(() => { label.classList.toggle('selected-purple', cb.checked); updateRegSummary(); }, 0);
+}
+function toggleRegSemesterChip(label) {
+  const cb = label.querySelector('input[type=checkbox]');
+  setTimeout(() => { label.classList.toggle('selected-purple', cb.checked); updateRegSummary(); }, 0);
+}
+function regSelectAllMajors(val) {
+  document.querySelectorAll('#form-open-reg input[name=reg_majors]').forEach(cb => {
+    cb.checked = val;
+    cb.closest('.major-card').classList.toggle('selected-purple', val);
+  });
+  updateRegSummary();
+}
+function regSelectAllSemesters(val) {
+  document.querySelectorAll('#form-open-reg input[name=reg_semesters]').forEach(cb => {
+    cb.checked = val;
+    cb.closest('.semester-chip').classList.toggle('selected-purple', val);
+  });
+  updateRegSummary();
+}
+function updateRegSummary() {
+  const majors    = document.querySelectorAll('#form-open-reg input[name=reg_majors]:checked').length;
+  const semesters = document.querySelectorAll('#form-open-reg input[name=reg_semesters]:checked').length;
+  const summary   = document.getElementById('reg-summary');
+  const btn       = document.getElementById('btn-do-open-reg');
+  document.getElementById('reg-sum-majors').textContent    = majors;
+  document.getElementById('reg-sum-semesters').textContent = semesters;
+  const ok = majors > 0 && semesters > 0;
+  summary.classList.toggle('visible', ok);
+  btn.disabled = !ok;
+}
+/* Gợi ý tên đợt tự động */
+document.getElementById('reg-start')?.addEventListener('change', function () {
+  const lbl = document.getElementById('reg-label');
+  if (lbl && !lbl.value) {
+    const d = new Date(this.value);
+    const y = d.getFullYear();
+    const hk = (d.getMonth() + 1) <= 7 ? 1 : 2;
+    lbl.value = `Đợt 1 – HK${hk} ${y}-${y + 1}`;
+  }
+});
+
+/* ─── MỞ ĐĂNG KÝ NHANH (từng dòng trong bảng) ─── */
+function openQuickRegModal(id, code, name) {
+  document.getElementById('form-quick-open').action = '/pdt/courses/' + id + '/open-quick';
+  document.getElementById('qo-course-name').textContent = name;
+  document.getElementById('qo-course-code').textContent = code;
+
+  /* Gợi ý thời gian: bắt đầu = giờ hiện tại, kết thúc = +7 ngày */
+  const now  = new Date();
+  const end  = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const fmt  = d => d.toISOString().slice(0, 16); /* yyyy-MM-ddTHH:mm */
+  document.getElementById('qo-start').value = fmt(now);
+  document.getElementById('qo-end').value   = fmt(end);
+
+  openModal('modal-quick-open');
+}
+</script>
+{% endblock %}

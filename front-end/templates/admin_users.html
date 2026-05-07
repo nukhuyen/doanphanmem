@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}Quản Lý Người Dùng{% endblock %}
+
+{% block extra_head %}
+<style>
+  .admin-header-strip { height:3px; background:linear-gradient(90deg,var(--navy-700),var(--navy-500),var(--gold)); }
+  .nav-link .nav-icon svg { width:17px; height:17px; }
+  .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .page-header-left { display:flex; align-items:center; gap:10px; }
+  .page-header-left svg { width:20px; height:20px; color:var(--navy-500); }
+  .page-heading { font-family:var(--font-display); font-size:22px; font-weight:700; color:var(--navy-800); }
+
+  .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .toolbar-right { margin-left:auto; display:flex; gap:10px; }
+
+  .user-cell { display:flex; align-items:center; gap:10px; }
+  .user-avatar { width:34px; height:34px; border-radius:50%; background:var(--navy-100); color:var(--navy-600); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; }
+  .user-name { font-size:13.5px; font-weight:600; color:var(--navy-800); }
+  .user-id { font-size:11.5px; color:var(--slate-400); }
+
+  .action-group { display:flex; gap:5px; justify-content:flex-end; }
+  .icon-btn {
+    width:30px; height:30px; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px solid; cursor:pointer; background:transparent;
+    transition:all .15s;
+  }
+  .icon-btn svg { width:13px; height:13px; }
+  .icon-btn-edit { border-color:var(--navy-200,#aac4f0); color:var(--navy-500); }
+  .icon-btn-edit:hover { background:var(--navy-50); border-color:var(--navy-400); }
+  .icon-btn-lock { border-color:#fde68a; color:#b45309; }
+  .icon-btn-lock:hover { background:#fef9c3; }
+  .icon-btn-unlock { border-color:#bbf7d0; color:var(--success); }
+  .icon-btn-unlock:hover { background:#f0fdf4; }
+  .icon-btn-delete { border-color:#fecaca; color:var(--danger); }
+  .icon-btn-delete:hover { background:#fff1f2; }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div style="width:44px;height:44px;border-radius:10px;background:var(--gold);display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 0 0 3px rgba(201,151,58,.25);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--navy-900)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--white);line-height:1.3;">Web Đăng Ký Tín Chỉ</div>
+    <div style="font-size:11px;color:var(--navy-400);margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">Quản Trị Hệ Thống</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Tổng quan</div>
+    <a href="/admin/dashboard" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+      Dashboard
+    </a>
+    <div class="nav-section-label">Quản lý</div>
+    <a href="/admin/users" class="nav-link active">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+      Người dùng
+    </a>
+    <a href="/admin/courses" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      Học phần
+    </a>
+    <a href="/admin/registrations" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      Đơn đăng ký
+      {% if pending_count|default(0) > 0 %}<span class="nav-badge">{{ pending_count }}</span>{% endif %}
+    </a>
+    <div class="nav-section-label">Hệ thống</div>
+    <a href="/admin/notifications" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      Thông báo
+    </a>
+    <a href="/admin/logs" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      Nhật ký
+    </a>
+    <a href="/admin/config" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 13.14M4.93 4.93a10 10 0 0 0-1.41 13.14M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+      Cấu hình
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:var(--gold);color:var(--navy-900);font-weight:700;">A</div>
+      <div>
+        <div class="sidebar-user-name">{{ session.name }}</div>
+        <div class="sidebar-user-role" style="color:var(--gold-lt);">Quản trị viên</div>
+      </div>
+    </div>
+    <a href="/logout" class="sidebar-logout">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Đăng xuất
+    </a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="admin-header-strip"></div>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Quản Lý Người Dùng</div>
+      <div class="topbar-breadcrumb" style="margin-top:2px;"><a href="/admin/dashboard">Dashboard</a> / Người dùng</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-gold btn-sm" onclick="openModal('modal-add-user')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Thêm người dùng
+      </button>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-wrap" style="padding-top:20px">{% for c,m in messages %}<div class="alert alert-{{c}}">{{m}}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title" style="display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--navy-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Danh sách người dùng ({{ users|length }})
+        </span>
+        <form method="GET" action="/admin/users" style="display:flex;gap:8px;">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Tìm kiếm..." style="width:220px;"/>
+          </div>
+          <button type="submit" class="btn btn-outline btn-sm">Tìm</button>
+          {% if q %}<a href="/admin/users" class="btn btn-ghost btn-sm">Xóa lọc</a>{% endif %}
+        </form>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;">#</th>
+                <th>Họ tên</th>
+                <th>Tên đăng nhập</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Ngày tạo</th>
+                <th style="text-align:right;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr>
+                <td style="color:var(--slate-400);font-size:12px;">{{ loop.index }}</td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar" style="background:{% if user.role=='admin' %}var(--gold);color:var(--navy-900){% else %}var(--navy-100);color:var(--navy-600){% endif %};">
+                      {{ user.full_name[0] if user.full_name else '?' }}
+                    </div>
+                    <div>
+                      <div class="user-name">{{ user.full_name }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-size:13px;color:var(--slate-600);">{{ user.username }}</td>
+                <td>
+                  <span class="badge {% if user.role=='admin' %}badge-admin{% else %}badge-student{% endif %}">
+                    {{ 'Quản trị viên' if user.role == 'admin' else 'Sinh viên' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge {% if user.active %}badge-approved{% else %}badge-inactive{% endif %}">
+                    {% if user.active %}
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20,6 9,17 4,12"/></svg> Hoạt động
+                    {% else %}
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Đã khóa
+                    {% endif %}
+                  </span>
+                </td>
+                <td style="font-size:12.5px;color:var(--slate-400);">
+                  {{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '—' }}
+                </td>
+                <td>
+                  <div class="action-group">
+                    <button class="icon-btn icon-btn-edit" title="Chỉnh sửa" onclick="openEditModal({{ user.id }}, '{{ user.full_name }}', '{{ user.role }}')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <form method="POST" action="/admin/users/{{ user.id }}/toggle" style="display:inline;">
+                      <button type="submit" class="icon-btn {% if user.active %}icon-btn-lock{% else %}icon-btn-unlock{% endif %}" title="{{ 'Khóa' if user.active else 'Mở khóa' }}">
+                        {% if user.active %}
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        {% else %}
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                        {% endif %}
+                      </button>
+                    </form>
+                    {% if user.role != 'admin' %}
+                    <form method="POST" action="/admin/users/{{ user.id }}/delete" style="display:inline;" onsubmit="return confirm('Xóa tài khoản {{ user.username }}?')">
+                      <button type="submit" class="icon-btn icon-btn-delete" title="Xóa">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2 2 0 0 1-2,2H8a2 2 0 0 1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1,1v2"/></svg>
+                      </button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7"><div class="empty-state"><div style="opacity:.3;margin-bottom:10px;"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><p>Không tìm thấy người dùng</p></div></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD USER -->
+<div class="modal-overlay" id="modal-add-user">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Thêm Người Dùng Mới</span>
+      <button class="modal-close" onclick="closeModal('modal-add-user')">×</button>
+    </div>
+    <form method="POST" action="/admin/users/add">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Họ và tên</label>
+          <input type="text" name="full_name" class="form-control" placeholder="Nguyễn Văn A" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tên đăng nhập</label>
+          <input type="text" name="username" class="form-control" placeholder="VD: sv2024001" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mật khẩu</label>
+          <input type="password" name="password" class="form-control" placeholder="Tối thiểu 6 ký tự" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vai trò</label>
+          <select name="role" class="form-control">
+            <option value="student">Sinh viên</option>
+            <option value="admin">Quản trị viên</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-add-user')">Hủy</button>
+        <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: EDIT USER -->
+<div class="modal-overlay" id="modal-edit-user">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Chỉnh Sửa Người Dùng</span>
+      <button class="modal-close" onclick="closeModal('modal-edit-user')">×</button>
+    </div>
+    <form method="POST" id="form-edit-user" action="">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Họ và tên</label>
+          <input type="text" name="full_name" id="edit-fullname" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vai trò</label>
+          <select name="role" id="edit-role" class="form-control">
+            <option value="student">Sinh viên</option>
+            <option value="admin">Quản trị viên</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mật khẩu mới <span style="color:var(--slate-400);font-weight:400;">(để trống nếu không đổi)</span></label>
+          <input type="password" name="password" class="form-control" placeholder="Mật khẩu mới..."/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-edit-user')">Hủy</button>
+        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEditModal(uid, fullname, role) {
+  document.getElementById('form-edit-user').action = '/admin/users/' + uid + '/edit';
+  document.getElementById('edit-fullname').value = fullname;
+  document.getElementById('edit-role').value = role;
+  openModal('modal-edit-user');
+}
+</script>
+{% endblock %}

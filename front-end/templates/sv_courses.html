@@ -1,0 +1,443 @@
+{% extends "base.html" %}
+{% block title %}Đăng Ký Học Phần{% endblock %}
+
+{% block extra_head %}
+<style>
+  .sv-strip { height:3px; background:linear-gradient(90deg,#1d4ed8,#3b82f6,#06b6d4); }
+
+  /* Course grid cards */
+  .courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; }
+
+  .course-card {
+    background:var(--white); border:1.5px solid var(--slate-200);
+    border-radius:var(--radius-lg); overflow:hidden;
+    box-shadow:var(--shadow-sm); transition:all .2s ease;
+    display:flex; flex-direction:column;
+  }
+  .course-card:hover { box-shadow:var(--shadow); transform:translateY(-2px); border-color:var(--navy-100); }
+  .course-card.registered { border-color:#86efac; background:#f0fdf4; }
+  .course-card.full { border-color:var(--slate-200); opacity:.7; }
+
+  .course-card-top {
+    padding:18px 20px 14px;
+    border-bottom:1px solid var(--slate-100);
+    display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  }
+  .course-code-tag {
+    display:inline-flex; align-items:center;
+    font-family:monospace; font-size:12px; font-weight:700;
+    color:#2563eb; background:#eff6ff;
+    padding:4px 10px; border-radius:6px;
+    margin-bottom:6px; letter-spacing:.5px;
+  }
+  .course-name {
+    font-family:var(--font-display); font-size:15px; font-weight:600;
+    color:var(--navy-800); line-height:1.4; margin-bottom:4px;
+  }
+  .course-subject-name {
+    font-size:12px; color:var(--slate-500); line-height:1.4;
+    font-style:italic;
+  }
+  .credit-badge {
+    flex-shrink:0; width:40px; height:40px; border-radius:10px;
+    background:linear-gradient(135deg,#1d4ed8,#2563eb);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:white;
+  }
+  .credit-badge .credit-num { font-size:16px; font-weight:700; line-height:1; }
+  .credit-badge .credit-lbl { font-size:9px; opacity:.8; letter-spacing:.3px; }
+
+  .course-card-meta { padding:12px 20px; display:flex; flex-direction:column; gap:7px; flex:1; }
+  .meta-row { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--slate-600); }
+  .meta-row svg { width:13px; height:13px; color:var(--slate-400); flex-shrink:0; }
+
+  .capacity-bar { margin:0 20px 4px; }
+  .capacity-track { height:5px; background:var(--slate-200); border-radius:3px; overflow:hidden; }
+  .capacity-fill { height:100%; border-radius:3px; transition:width .4s; }
+
+  .course-card-foot {
+    padding:12px 20px 16px;
+    border-top:1px solid var(--slate-100);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  /* Status chips */
+  .chip { display:inline-flex; align-items:center; gap:5px; padding:4px 11px; border-radius:20px; font-size:12px; font-weight:600; }
+  .chip-registered { background:#dcfce7; color:#166534; }
+  .chip-pending    { background:#fef9c3; color:#854d0e; }
+  .chip-full       { background:#fee2e2; color:#991b1b; }
+  .chip-closed     { background:#f1f5f9; color:#64748b; }
+
+  /* Filter bar */
+  .filter-bar {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:18px; flex-wrap:wrap;
+  }
+  .filter-bar form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; width:100%; }
+
+  .filter-group {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex:1;
+  }
+
+  .filter-select {
+    padding:7px 12px; border-radius:8px; font-size:13px;
+    border:1.5px solid var(--slate-200); background:var(--white);
+    color:var(--slate-700); cursor:pointer; transition:border-color .15s;
+    min-width:140px;
+  }
+  .filter-select:focus { outline:none; border-color:#93c5fd; }
+  .filter-select:hover { border-color:#93c5fd; }
+
+  .search-wrap { position:relative; flex:1; min-width:200px; max-width:340px; }
+  .search-wrap .search-icon {
+    position:absolute; left:10px; top:50%; transform:translateY(-50%);
+    width:14px; height:14px; color:var(--slate-400);
+  }
+  .search-wrap input { padding-left:32px !important; }
+
+  .filter-actions { display:flex; gap:6px; align-items:center; }
+
+  /* Active filter badge */
+  .active-filter-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 10px 3px 8px; border-radius:20px;
+    background:#eff6ff; border:1px solid #bfdbfe;
+    color:#1d4ed8; font-size:12px; font-weight:500;
+  }
+  .active-filter-badge a {
+    color:#93c5fd; text-decoration:none; margin-left:2px;
+    font-size:14px; line-height:1;
+  }
+  .active-filter-badge a:hover { color:#1d4ed8; }
+
+  .results-row {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; flex-wrap:wrap; gap:8px;
+  }
+
+  /* Closed system banner */
+  .closed-banner {
+    display:flex; align-items:center; gap:12px;
+    background:#fef9c3; border:1.5px solid #fde68a;
+    border-left:4px solid #f59e0b;
+    border-radius:var(--radius); padding:14px 20px;
+    margin-bottom:22px; font-size:13px; color:#78350f;
+  }
+  .closed-banner svg { width:18px; height:18px; flex-shrink:0; color:#b45309; }
+
+  /* My class highlight */
+  .my-class-hint {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 12px; border-radius:20px;
+    background:#f0fdf4; border:1px solid #86efac;
+    color:#166534; font-size:12px; font-weight:500;
+    margin-bottom:16px;
+  }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 0 0 3px rgba(37,99,235,.25);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--white);line-height:1.3;">Web Đăng Ký Tín Chỉ</div>
+    <div style="font-size:11px;color:#93c5fd;margin-top:2px;letter-spacing:.5px;text-transform:uppercase;">Cổng Sinh Viên</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Tổng quan</div>
+    <a href="/sv/dashboard" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+      Trang chủ
+    </a>
+    <div class="nav-section-label">Đăng ký học phần</div>
+    <a href="/sv/sections" class="nav-link active">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      Danh sách học phần
+    </a>
+    <a href="/sv/my-registrations" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      Đơn đăng ký của tôi
+    </a>
+    <div class="nav-section-label">Thông tin</div>
+    <a href="/sv/notifications" class="nav-link">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      Thông báo
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;font-weight:700;">{{ session.name[0]|upper if session.name else 'S' }}</div>
+      <div>
+        <div class="sidebar-user-name">{{ session.name }}</div>
+        <div class="sidebar-user-role" style="color:#93c5fd;">Sinh viên</div>
+      </div>
+    </div>
+    <a href="/logout" class="sidebar-logout">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Đăng xuất
+    </a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="sv-strip"></div>
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Danh Sách Học Phần</div>
+      <div class="topbar-breadcrumb" style="margin-top:2px;"><a href="/sv/dashboard">Trang chủ</a> / Đăng ký học phần</div>
+    </div>
+    <div class="topbar-actions">
+      <a href="/sv/my-registrations" class="btn btn-outline btn-sm">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        Đơn của tôi
+      </a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flash-wrap" style="padding-top:20px">{% for c,m in messages %}<div class="alert alert-{{c}}">{{ m|safe }}</div>{% endfor %}</div>{% endif %}
+  {% endwith %}
+
+  <div class="page-content">
+
+    {% if reg_open != '1' %}
+    <div class="closed-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>
+        <strong>Hệ thống đăng ký đang tạm đóng.</strong>
+        Phòng Đào Tạo đã tạm ngưng nhận đơn đăng ký học phần. Vui lòng theo dõi thông báo để biết thời gian mở lại.
+      </div>
+    </div>
+    {% endif %}
+
+    {# Gợi ý lọc theo ngành của sinh viên đang đăng nhập #}
+    {% if current_user and current_user.major and not major_filter and not class_filter %}
+    <div class="my-class-hint">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Ngành của bạn: <strong>{{ current_user.major.name }}</strong> —
+      <a href="?major_id={{ current_user.major_id }}" style="color:#166534;font-weight:600;text-decoration:underline;">Lọc học phần ngành tôi</a>
+    </div>
+    {% endif %}
+
+    <!-- Search & Filter -->
+    <div class="filter-bar">
+      <form method="GET" action="/sv/sections">
+        <div class="filter-group">
+
+          <!-- Tìm kiếm -->
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" name="q" value="{{ q }}" class="form-control"
+              placeholder="Tìm tên, mã môn, giảng viên…" style="padding-left:32px;"/>
+          </div>
+
+          <!-- Filter ngành -->
+          <select name="major_id" class="filter-select" onchange="this.form.submit()">
+            <option value="">-- Tất cả ngành --</option>
+            {% for m in majors %}
+            <option value="{{ m.id }}" {% if major_filter == m.id|string %}selected{% endif %}>
+              {{ m.code }} — {{ m.name }}
+            </option>
+            {% endfor %}
+          </select>
+
+          <!-- Filter lớp (nếu có dữ liệu class_name) -->
+          {% if all_classes %}
+          <select name="class_name" class="filter-select" onchange="this.form.submit()">
+            <option value="">-- Tất cả lớp --</option>
+            {% for cls in all_classes %}
+            <option value="{{ cls }}" {% if class_filter == cls %}selected{% endif %}>{{ cls }}</option>
+            {% endfor %}
+          </select>
+          {% endif %}
+
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Tìm</button>
+            {% if q or major_filter or class_filter %}
+            <a href="/sv/sections" class="btn btn-ghost btn-sm">Xóa lọc</a>
+            {% endif %}
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Active filters & count -->
+    <div class="results-row">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        {% if major_filter %}
+          {% for m in majors %}{% if m.id|string == major_filter %}
+          <span class="active-filter-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>
+            Ngành: {{ m.code }}
+            <a href="?{% if q %}q={{ q }}&{% endif %}{% if class_filter %}class_name={{ class_filter }}{% endif %}">×</a>
+          </span>
+          {% endif %}{% endfor %}
+        {% endif %}
+        {% if class_filter %}
+        <span class="active-filter-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          Lớp: {{ class_filter }}
+          <a href="?{% if q %}q={{ q }}&{% endif %}{% if major_filter %}major_id={{ major_filter }}{% endif %}">×</a>
+        </span>
+        {% endif %}
+        {% if q %}
+        <span class="active-filter-badge">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          "{{ q }}"
+          <a href="?{% if major_filter %}major_id={{ major_filter }}&{% endif %}{% if class_filter %}class_name={{ class_filter }}{% endif %}">×</a>
+        </span>
+        {% endif %}
+      </div>
+      <span style="font-size:13px;color:var(--slate-400);">{{ courses|length }} học phần</span>
+    </div>
+
+    {% if courses %}
+    <div class="courses-grid">
+      {% for c in courses %}
+      {% set enrolled = c.current_enrolled or 0 %}
+      {% set pct = (enrolled / c.max_students * 100)|int %}
+      {% set is_registered = c.id in my_course_ids %}
+      {% set is_full = enrolled >= c.max_students %}
+
+      <div class="course-card {% if is_registered %}registered{% elif is_full %}full{% endif %}">
+        <!-- Top -->
+        <div class="course-card-top">
+          <div style="flex:1;min-width:0;">
+            <div class="course-code-tag">{{ c.code }}</div>
+            {# Tên lớp học phần (mã section) #}
+            <div class="course-name">
+              {% if c.course %}{{ c.course.name }}{% else %}{{ c.code }}{% endif %}
+            </div>
+            {# Mã môn học gốc nếu section code khác course code #}
+            {% if c.course and c.course.code != c.code %}
+            <div class="course-subject-name">
+              Mã môn: {{ c.course.code }}
+            </div>
+            {% endif %}
+          </div>
+          <div class="credit-badge">
+            <div class="credit-num">{{ c.course.credits if c.course else '?' }}</div>
+            <div class="credit-lbl">TC</div>
+          </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="course-card-meta">
+          {% if c.instructor %}
+          <div class="meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {{ c.instructor }}
+          </div>
+          {% endif %}
+          {% if c.schedule %}
+          <div class="meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            {{ c.schedule }}
+          </div>
+          {% endif %}
+          {% if c.semester %}
+          <div class="meta-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+            {{ c.semester }}
+          </div>
+          {% endif %}
+
+          {# Hiện ngành liên quan đến học phần này #}
+          {% if c.course %}
+            {% set related_curricula = c.course.curriculums %}
+            {% if related_curricula %}
+            <div class="meta-row" style="flex-wrap:wrap;gap:4px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+              {% for cu in related_curricula[:3] %}
+              <span style="background:#f1f5f9;color:#475569;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;">
+                {{ cu.major.code if cu.major else '?' }}
+              </span>
+              {% endfor %}
+              {% if related_curricula|length > 3 %}
+              <span style="font-size:11px;color:var(--slate-400);">+{{ related_curricula|length - 3 }}</span>
+              {% endif %}
+            </div>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <!-- Capacity bar -->
+        <div class="capacity-bar">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:11.5px;color:var(--slate-400);">Sĩ số</span>
+            <span style="font-size:12px;font-weight:700;color:{% if pct>=100 %}var(--danger){% elif pct>=80 %}#b45309{% else %}#16a34a{% endif %};">
+              {{ enrolled }}/{{ c.max_students }}
+            </span>
+          </div>
+          <div class="capacity-track">
+            <div class="capacity-fill" style="width:{{ [pct,100]|min }}%;background:{% if pct>=100 %}var(--danger){% elif pct>=80 %}#f59e0b{% else %}#22c55e{% endif %};"></div>
+          </div>
+        </div>
+
+        <!-- Footer / Action -->
+        <div class="course-card-foot">
+          <div>
+            {% if is_registered %}
+              <span class="chip chip-registered">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20,6 9,17 4,12"/></svg>
+                Đã đăng ký
+              </span>
+            {% elif is_full %}
+              <span class="chip chip-full">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Đã đầy lớp
+              </span>
+            {% elif reg_open != '1' %}
+              <span class="chip chip-closed">Đóng đăng ký</span>
+            {% else %}
+              <span class="chip" style="background:#eff6ff;color:#1d4ed8;font-size:11.5px;">Còn {{ c.max_students - enrolled }} chỗ</span>
+            {% endif %}
+          </div>
+
+          {% if not is_registered and not is_full and reg_open == '1' %}
+          <form method="POST" action="/sv/sections/{{ c.id }}/register">
+            <button type="submit" class="btn btn-primary btn-sm"
+              onclick="return confirm('Đăng ký học phần {{ c.code }}{% if c.course %} — {{ c.course.name }}{% endif %}?')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Đăng ký
+            </button>
+          </form>
+          {% elif is_registered %}
+          <a href="/sv/my-registrations" class="btn btn-ghost btn-sm">Xem đơn →</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius-lg);padding:80px 20px;">
+      <div class="empty-state">
+        <div style="opacity:.3;margin-bottom:16px;">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <p style="font-size:15px;font-weight:600;color:var(--navy-700);">
+          {% if q %}
+            Không tìm thấy học phần với từ khóa "{{ q }}"
+          {% elif major_filter or class_filter %}
+            Không có học phần nào phù hợp với bộ lọc đang chọn
+          {% else %}
+            Hiện chưa có học phần nào mở đăng ký
+          {% endif %}
+        </p>
+        {% if q or major_filter or class_filter %}
+        <p style="margin-top:8px;">
+          <a href="/sv/sections" style="color:#2563eb;">← Xem tất cả học phần</a>
+        </p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
