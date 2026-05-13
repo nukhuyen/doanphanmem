@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Môi trường ảo (Quan trọng nhất để giảm dung lượng push)
+.venv/
+venv/
+ENV/
+
+# File bí mật (Chứa mật khẩu database local)
+.env
+
+# SQLite database local (nếu có)
+*.db
+instance/

@@ -4,7 +4,8 @@ from flask import Flask, render_template, request, redirect, session, url_for, f
 from database import db
 from backend.models import (User, Major, Course, Section, Curriculum, 
                              Registration, Notification, SystemLog, SystemConfig)
-
+import pymysql
+pymysql.install_as_MySQLdb()
 # ══════════════════════════════════
 #  CẤU HÌNH ỨNG DỤNG
 # ══════════════════════════════════
@@ -41,8 +42,7 @@ if not database_uri:
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
     DB_PORT = os.environ.get('DB_PORT', '3306')
     DB_NAME = os.environ.get('DB_NAME', 'hethong_dkhp')
-    database_uri = f'mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4'
-
+    database_uri = f'mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 # 2. Cấu hình Flask-SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
