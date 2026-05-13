@@ -34,6 +34,7 @@ class Config:
         }
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
+database_uri = os.environ.get('DATABASE_URL')
 if not database_uri:
     DB_USER = os.environ.get('DB_USER', 'root')
     DB_PASS = os.environ.get('DB_PASS', '')
