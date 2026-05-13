@@ -56,7 +56,8 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 
 db.init_app(app)
 
-
+with app.app_context():
+    db.create_all()  # Lệnh này sẽ kiểm tra, bảng nào chưa có thì nó mới tạo
 # ══════════════════════════════════
 #  SEED
 # ══════════════════════════════════
