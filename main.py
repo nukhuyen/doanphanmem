@@ -28,14 +28,17 @@ class Config:
     }  
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
+
 database_uri = os.environ.get('DATABASE_URL')
 if not database_uri:
-    # DB_USER = os.environ.get('DB_USER', 'root')
-    # DB_PASS = os.environ.get('DB_PASS', '')
-    # DB_HOST = os.environ.get('DB_HOST', 'localhost')
-    # DB_PORT = os.environ.get('DB_PORT', '3306')
-    # DB_NAME = os.environ.get('DB_NAME', 'hethong_dkhp')
+    # Định nghĩa các biến TRƯỚC khi dùng
+    DB_USER = os.environ.get('DB_USER', 'root')
+    DB_PASS = os.environ.get('DB_PASS', '')
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_PORT = os.environ.get('DB_PORT', '3306')
+    DB_NAME = os.environ.get('DB_NAME', 'hethong_dkhp')
     database_uri = f'mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+
 # 2. Cấu hình Flask-SQLAlchemy
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
