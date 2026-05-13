@@ -1294,7 +1294,7 @@ def pdt_import_curriculum():
     guard = require_pdt()
     if guard: return guard
 
-    from seed_curriculum import CURRICULUM_DATA
+    from backend.seed_curriculum import CURRICULUM_DATA
 
     selected_majors    = request.form.getlist('majors')
     selected_semesters = [int(s) for s in request.form.getlist('semesters')]
