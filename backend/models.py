@@ -1,8 +1,19 @@
 from database import db
 from datetime import datetime
 import bcrypt
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
-
+try:
+    from database import db
+except ImportError:
+    # Backup cho một số môi trường chạy local khác
+    import database
+    db = database.db
 # ══════════════════════════════════
 #  USER
 # ══════════════════════════════════
