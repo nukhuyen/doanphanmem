@@ -6,32 +6,44 @@ from backend.models import (User, Major, Course, Section, Curriculum,
                              Registration, Notification, SystemLog, SystemConfig)
 import pymysql
 pymysql.install_as_MySQLdb()
+
 # ══════════════════════════════════
 #  CẤU HÌNH ỨNG DỤNG
 # ══════════════════════════════════
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.normpath(os.path.join(BASE_DIR, 'front-end', 'templates'))
+TEMPLATE_DIR = os.path.normpath(os.path.join(BASE_DIR, 'frontend', 'templates'))  # ✅ FIXED: 'front-end' → 'frontend'
 ROOT_DIR     = os.path.normpath(os.path.join(BASE_DIR))
-current_dir = os.path.dirname(os.path.abspath(__file__))
-CA_CERT_PATH = os.path.join(current_dir, "ca.pem")
 
 class Config:
-    # ... các cấu hình khác ...
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'connect_args': {
-            'ssl': {
-                'ca': CA_CERT_PATH
+    SECRET_KEY = os.getenv("SECRET_KEY", "change-this-key")
+    
+    # 1. Đọc URI từ biến môi trường
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    
+    # 2. Cấu hình SSL chính xác cho Aiven MySQL
+    CA_CERT_PATH = os.path.join(ROOT_DIR, "ca.pem")
+
+    # ✅ FIXED: Thêm fallback nếu ca.pem không tồn tại
+    if SQLALCHEMY_DATABASE_URI and "mysql+pymysql" in SQLALCHEMY_DATABASE_URI:
+        if os.path.exists(CA_CERT_PATH):
+            SQLALCHEMY_ENGINE_OPTIONS = {
+                'connect_args': {
+                    'ssl': {
+                        'ca': CA_CERT_PATH
+                    }
+                },
+                'pool_recycle': 280,
+                'pool_pre_ping': True
             }
-        },
-        'pool_recycle': 280,
-        'pool_pre_ping': True
-    }  
+        else:
+            SQLALCHEMY_ENGINE_OPTIONS = {
+                'pool_recycle': 280,
+                'pool_pre_ping': True
+            }
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
-
 database_uri = os.environ.get('DATABASE_URL')
 if not database_uri:
-    # Định nghĩa các biến TRƯỚC khi dùng
     DB_USER = os.environ.get('DB_USER', 'root')
     DB_PASS = os.environ.get('DB_PASS', '')
     DB_HOST = os.environ.get('DB_HOST', 'localhost')
