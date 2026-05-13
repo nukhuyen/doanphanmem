@@ -1,15 +1,15 @@
 import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session, url_for, flash
-from database import db
-from models import (User, Major, Course, Section, Curriculum,
-                    Registration, Notification, SystemLog, SystemConfig)
+from backend.database import db
+from backend.models import (User, Major, Course, Section, Curriculum, 
+                             Registration, Notification, SystemLog, SystemConfig)
 
 # ══════════════════════════════════
 #  CẤU HÌNH ỨNG DỤNG
 # ══════════════════════════════════
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
-TEMPLATE_DIR = os.path.normpath(os.path.join(BASE_DIR, '..', 'front-end', 'templates'))
+TEMPLATE_DIR = os.path.normpath(os.path.join(BASE_DIR, 'front-end', 'templates'))
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
