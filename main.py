@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, session, url_for, flash
-from backend.database import db
+from database import db
 from backend.models import (User, Major, Course, Section, Curriculum, 
                              Registration, Notification, SystemLog, SystemConfig)
 
