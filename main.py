@@ -35,11 +35,14 @@ class Config:
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
+
+# Cách sửa an toàn: 
+# Nếu không tìm thấy biến môi trường, nó sẽ để trống hoặc dùng giá trị mặc định vô hại
 DB_USER = os.environ.get('DB_USER', 'root')
-DB_PASS = os.environ.get('DB_PASS', '14022002')
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_PORT = os.environ.get('DB_PORT', '3306')
-DB_NAME = os.environ.get('DB_NAME', 'hethong_dkhp')
+DB_PASS = os.environ.get('DB_PASS')          # Không nên để mật khẩu thật ở đây
+DB_HOST = os.environ.get('DB_HOST')          # Render sẽ cung cấp Host này
+DB_PORT = os.environ.get('DB_PORT', '21977')
+DB_NAME = os.environ.get('DB_NAME')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     f'mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
