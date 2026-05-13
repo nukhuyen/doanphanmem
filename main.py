@@ -10,6 +10,28 @@ from backend.models import (User, Major, Course, Section, Curriculum,
 # ══════════════════════════════════
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.normpath(os.path.join(BASE_DIR, 'front-end', 'templates'))
+ROOT_DIR     = os.path.normpath(os.path.join(BASE_DIR))
+class Config:
+    SECRET_KEY = os.getenv("SECRET_KEY", "change-this-key")
+    
+    # 1. Đọc URI từ biến môi trường
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    
+    # 2. Cấu hình SSL chính xác cho Aiven MySQL
+    # Đường dẫn tuyệt đối tới file ca.pem ở thư mục gốc
+    CA_CERT_PATH = os.path.join(ROOT_DIR, "ca.pem")
+
+    if SQLALCHEMY_DATABASE_URI and "mysql+pymysql" in SQLALCHEMY_DATABASE_URI:
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'connect_args': {
+                'ssl': {
+                    'ca': CA_CERT_PATH
+                }
+            },
+            # Giúp duy trì kết nối ổn định trên server
+            'pool_recycle': 280,
+            'pool_pre_ping': True
+        }
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
