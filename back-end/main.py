@@ -14,7 +14,7 @@ TEMPLATE_DIR = os.path.normpath(os.path.join(BASE_DIR, '..', 'front-end', 'templ
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
 DB_USER = os.environ.get('DB_USER', 'root')
-DB_PASS = os.environ.get('DB_PASS', '')
+DB_PASS = os.environ.get('DB_PASS', '14022002')
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', '3306')
 DB_NAME = os.environ.get('DB_NAME', 'hethong_dkhp')
