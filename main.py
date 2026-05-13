@@ -34,26 +34,24 @@ class Config:
         }
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
+if not database_uri:
+    DB_USER = os.environ.get('DB_USER', 'root')
+    DB_PASS = os.environ.get('DB_PASS', '')
+    DB_HOST = os.environ.get('DB_HOST', 'localhost')
+    DB_PORT = os.environ.get('DB_PORT', '3306')
+    DB_NAME = os.environ.get('DB_NAME', 'hethong_dkhp')
+    database_uri = f'mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4'
 
-
-# Cách sửa an toàn: 
-# Nếu không tìm thấy biến môi trường, nó sẽ để trống hoặc dùng giá trị mặc định vô hại
-DB_USER = os.environ.get('DB_USER', 'root')
-DB_PASS = os.environ.get('DB_PASS')          # Không nên để mật khẩu thật ở đây
-DB_HOST = os.environ.get('DB_HOST')          # Render sẽ cung cấp Host này
-DB_PORT = os.environ.get('DB_PORT', '21977')
-DB_NAME = os.environ.get('DB_NAME')
-
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    f'mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-    '?charset=utf8mb4'
-)
+# 2. Cấu hình Flask-SQLAlchemy
+app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = os.environ.get('SECRET_KEY', 'dkhp_secret_2026')
+
+# 3. Cấu hình Engine để duy trì kết nối ổn định trên Render/Aiven
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_recycle': 280,
     'pool_pre_ping': True,
 }
-app.secret_key = os.environ.get('SECRET_KEY', 'dkhp_secret_2026')
 
 db.init_app(app)
 
