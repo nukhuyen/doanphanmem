@@ -12,23 +12,11 @@ pymysql.install_as_MySQLdb()
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.normpath(os.path.join(BASE_DIR, 'front-end', 'templates'))
 ROOT_DIR     = os.path.normpath(os.path.join(BASE_DIR))
-class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "change-this-key")
-    
-    # 1. Đọc URI và xử lý tiền tố
-    uri = os.environ.get('DATABASE_URL')
-    if uri and uri.startswith("mysql://"):
-        uri = uri.replace("mysql://", "mysql+pymysql://", 1)
-    
-    # Xử lý triệt để lỗi ssl-mode nếu lỡ còn dính trong chuỗi URL
-    if uri and "ssl-mode=" in uri:
-        uri = uri.replace("ssl-mode=", "ssl_mode=")
-        
-    SQLALCHEMY_DATABASE_URI = uri
-    
-    # 2. Cấu hình SSL
-    CA_CERT_PATH = os.path.join(ROOT_DIR, "ca.pem")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+CA_CERT_PATH = os.path.join(current_dir, "ca.pem")
 
+class Config:
+    # ... các cấu hình khác ...
     SQLALCHEMY_ENGINE_OPTIONS = {
         'connect_args': {
             'ssl': {
@@ -37,7 +25,7 @@ class Config:
         },
         'pool_recycle': 280,
         'pool_pre_ping': True
-    }
+    }  
 
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 database_uri = os.environ.get('DATABASE_URL')
